@@ -63,8 +63,26 @@
            <div itemprop="articleBody">
              
   <h1>Source code for setFTs.setfunctions</h1><div class="highlight"><pre>
-<span></span>
-<div class="viewcode-block" id="SetFunction"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.SetFunction">[docs]</a><span class="k">class</span> <span class="nc">SetFunction</span><span class="p">():</span> 
+<span></span><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
+<span class="kn">from</span> <span class="nn">ast</span> <span class="kn">import</span> <span class="n">Raise</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log2</span>
+<span class="kn">from</span> <span class="nn">pyexpat</span> <span class="kn">import</span> <span class="n">model</span>
+<span class="kn">from</span> <span class="nn">re</span> <span class="kn">import</span> <span class="n">S</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">container</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+
+<span class="kn">from</span> <span class="nn">setFTs</span> <span class="kn">import</span> <span class="n">minmax</span>
+<span class="kn">from</span> <span class="nn">setFTs.utils</span> <span class="kn">import</span> <span class="n">get_indicator_set</span><span class="p">,</span><span class="n">int2indicator</span>
+<span class="kn">from</span> <span class="nn">setFTs</span> <span class="kn">import</span> <span class="n">transformations</span>
+
+
+<div class="viewcode-block" id="SetFunction"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.SetFunction">[docs]</a><span class="k">class</span> <span class="nc">SetFunction</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span> 
     <span class="sd">&quot;&quot;&quot;A parent class solely for inheritance purposes&quot;&quot;&quot;</span>   
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indicators</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -87,7 +105,38 @@
 <span class="sd">        :returns: integer index of element that produces the biggest gain if changed to 1 and the corresponding value gain</span>
 <span class="sd">        :rtype: (np.array,float)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+       
+        <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">maximize</span><span class="p">:</span>
+            <span class="n">max_value</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">max_el</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">N</span><span class="p">[</span><span class="kc">True</span><span class="o">^</span><span class="n">S0</span><span class="p">]:</span>
+                <span class="n">curr_indicator</span> <span class="o">=</span> <span class="n">S0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">curr_indicator</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">curr_value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">curr_indicator</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">curr_value</span> <span class="o">&gt;</span> <span class="n">max_value</span><span class="p">:</span>
+                    <span class="n">max_value</span> <span class="o">=</span> <span class="n">curr_value</span>
+                    <span class="n">max_el</span> <span class="o">=</span> <span class="n">element</span>
+                <span class="k">elif</span> <span class="n">curr_value</span> <span class="o">==</span> <span class="n">max_value</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+                        <span class="n">max_value</span> <span class="o">=</span> <span class="n">curr_value</span>
+                        <span class="n">max_el</span> <span class="o">=</span> <span class="n">element</span>
+            <span class="k">return</span> <span class="n">max_el</span><span class="p">,</span> <span class="n">max_value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">min_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">min_el</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">N</span><span class="p">[</span><span class="n">S0</span><span class="p">]:</span>
+                <span class="n">curr_indicator</span> <span class="o">=</span> <span class="n">S0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">curr_indicator</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">curr_value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">curr_indicator</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">curr_value</span> <span class="o">&lt;</span> <span class="n">min_value</span><span class="p">:</span>
+                    <span class="n">min_value</span> <span class="o">=</span> <span class="n">curr_value</span>
+                    <span class="n">min_el</span> <span class="o">=</span> <span class="n">element</span>
+                <span class="k">elif</span> <span class="n">curr_value</span> <span class="o">==</span> <span class="n">min_value</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+                        <span class="n">min_value</span> <span class="o">=</span> <span class="n">curr_value</span>
+                        <span class="n">min_el</span> <span class="o">=</span> <span class="n">element</span>
+            <span class="k">return</span> <span class="n">min_el</span><span class="p">,</span> <span class="n">min_value</span></div>
 
 <div class="viewcode-block" id="SetFunction.minimize_greedy"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.SetFunction.minimize_greedy">[docs]</a>    <span class="k">def</span> <span class="nf">minimize_greedy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_card</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_card</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Greedy minimization algorithm for set functions. (Does not guarantee that the optimal solution is found)</span>
@@ -102,7 +151,17 @@
 <span class="sd">        :returns: an np.array indicator vector of booleans that minimizes the setfunction and the evaluated setfunction for that indicator</span>
 <span class="sd">        :rtype:(np.array,float)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">S0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_card</span><span class="p">):</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gains</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">S0</span><span class="p">,</span><span class="n">maximize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gains: i=</span><span class="si">%d</span><span class="s1">, value=</span><span class="si">%.4f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">S0</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">force_card</span><span class="p">:</span>
+                <span class="n">S0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">S0</span><span class="p">,</span> <span class="bp">self</span><span class="p">(</span><span class="n">S0</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="SetFunction.maximize_greedy"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.SetFunction.maximize_greedy">[docs]</a>    <span class="k">def</span> <span class="nf">maximize_greedy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_card</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_card</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Greedy maximization algorithm for set functions. (Does not guarantee that the optimal solution is found)</span>
@@ -117,19 +176,32 @@
 <span class="sd">        :returns: an np.array indicator vector of booleans that maximizes the setfunction and the evaluated setfunction for that indicator</span>
 <span class="sd">        :rtype:(np.array,float)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div></div>
+        <span class="n">S0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_card</span><span class="p">):</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gains</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">S0</span><span class="p">,</span><span class="n">maximize</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gains: i=</span><span class="si">%d</span><span class="s1">, value=</span><span class="si">%.4f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">S0</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">force_card</span><span class="p">:</span>
+                <span class="n">S0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">S0</span><span class="p">,</span> <span class="bp">self</span><span class="p">(</span><span class="n">S0</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div></div>
     
 <div class="viewcode-block" id="WrapSignal"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.WrapSignal">[docs]</a><span class="k">class</span> <span class="nc">WrapSignal</span><span class="p">(</span><span class="n">SetFunction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Wrapper class for instantiating set functions with a full list of set function evaluations&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">signal</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">signal</span> <span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
         <span class="sd">&quot;&quot;&quot;initializes setfunction with list</span>
 
 <span class="sd">        :param signal: complete list of float outputs of a setfunction in lexicographical ordering</span>
 <span class="sd">        :type signal: List[float]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span> <span class="o">=</span> <span class="n">get_indicator_set</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">))))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="n">signal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">indicator</span><span class="p">,</span> <span class="n">count_flag</span> <span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">indicator</span> <span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">count_flag</span> <span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;calls set function with np.array of indicator vectors</span>
 
 <span class="sd">            :param indicators: two dimensional np.array with one indicator vector per row</span>
@@ -139,7 +211,15 @@
 <span class="sd">            :return: a np.array of set function evaluations</span>
 <span class="sd">            :rtype: npt.NDArray[float64]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indicator</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">indicator</span> <span class="o">=</span> <span class="n">indicator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        
+        <span class="n">power_of_twos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">))</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">indicator</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">power_of_twos</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">ind</span><span class="p">))]]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 
 <div class="viewcode-block" id="WrapSignal.spectral_energy"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.WrapSignal.spectral_energy">[docs]</a>    <span class="k">def</span> <span class="nf">spectral_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">max_card</span><span class="p">,</span><span class="n">flag_rescale</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;calculates the normalized coefficients per cardinality</span>
@@ -151,7 +231,20 @@
 <span class="sd">        :returns: normalized coefficient of length max_card</span>
 <span class="sd">        :rtype: List[float]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span>
+        <span class="n">cardinalites</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">avg_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_card</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">card_i</span> <span class="o">=</span> <span class="n">cardinalites</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">freqs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">flag_rescale</span><span class="p">):</span>
+                <span class="n">avg</span> <span class="o">=</span> <span class="n">metric</span><span class="p">(</span><span class="n">card_i</span><span class="o">*</span><span class="n">coefs</span><span class="p">)</span><span class="o">/</span><span class="n">metric</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span>
+                <span class="n">avg_values</span> <span class="o">+=</span>  <span class="p">[</span><span class="n">avg</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="n">avg</span> <span class="o">=</span> <span class="n">metric</span><span class="p">(</span><span class="n">card_i</span><span class="o">*</span><span class="n">coefs</span><span class="p">)</span>
+                <span class="n">avg_values</span> <span class="o">+=</span> <span class="p">[</span><span class="n">avg</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">avg_values</span></div>
 
 <div class="viewcode-block" id="WrapSignal.transform_fast"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.WrapSignal.transform_fast">[docs]</a>    <span class="k">def</span> <span class="nf">transform_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;fast Fourier transformation algorithm</span>
@@ -160,7 +253,8 @@
 <span class="sd">        :returns: sparseDSFTFunction object of the desired model </span>
 <span class="sd">        :rtype: sparseDSFTFunction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">fast_transformer</span> <span class="o">=</span> <span class="n">transformations</span><span class="o">.</span><span class="n">FastSFT</span><span class="p">(</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fast_transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="WrapSignal.transform_sparse"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.WrapSignal.transform_sparse">[docs]</a>    <span class="k">def</span> <span class="nf">transform_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span><span class="n">k_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span><span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span><span class="n">flag_print</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span><span class="n">flag_general</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;sparse Fourier transformation algorithm</span>
@@ -177,32 +271,40 @@
 <span class="sd">        :returns: a sparseDSFTFunction object of the desired model </span>
 <span class="sd">        :rtype: sparseDSFTFunction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">sparse_transformer</span> <span class="o">=</span> <span class="n">transformations</span><span class="o">.</span><span class="n">SparseSFT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span><span class="n">k_max</span> <span class="o">=</span> <span class="n">k_max</span><span class="p">,</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span><span class="p">,</span><span class="n">flag_print</span><span class="o">=</span> <span class="n">flag_print</span><span class="p">,</span><span class="n">flag_general</span><span class="o">=</span><span class="n">flag_general</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sparse_transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="WrapSignal.min"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.WrapSignal.min">[docs]</a>    <span class="k">def</span> <span class="nf">min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; finds the subset that returns the smallest set function value</span>
 <span class="sd">        :returns: indicator vector that minimizes the set function</span>
 <span class="sd">        :rtype: npt.NDArray[bool] </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">sig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span>
+        <span class="n">min_index</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">sig</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">int2indicator</span><span class="p">(</span><span class="n">min_index</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span></div>
     
 <div class="viewcode-block" id="WrapSignal.max"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.WrapSignal.max">[docs]</a>    <span class="k">def</span> <span class="nf">max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; finds the subset that returns the largest set function value</span>
 <span class="sd">        :returns: indicator vector that maximizes the set function</span>
 <span class="sd">        :rtype: npt.NDArray[bool] </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">sig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span>
+        <span class="n">max_index</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">sig</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">int2indicator</span><span class="p">(</span><span class="n">max_index</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="WrapSignal.export_to_csv"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.WrapSignal.export_to_csv">[docs]</a>    <span class="k">def</span> <span class="nf">export_to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span> <span class="o">=</span><span class="s2">&quot;sf.csv&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; exports the frequencies and coefficients into a csv file </span>
 <span class="sd">            :param name: name of the newly created file ending in .csv</span>
 <span class="sd">            :param type: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div></div>
+        <span class="n">df_freqs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">)</span>
+        <span class="n">df_coefs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">)</span>
+        <span class="n">df_sf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_freqs</span><span class="p">,</span><span class="n">df_coefs</span><span class="p">],</span><span class="n">axis</span> <span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">df_sf</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div></div>
     
 <div class="viewcode-block" id="WrapSetFunction"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.WrapSetFunction">[docs]</a><span class="k">class</span> <span class="nc">WrapSetFunction</span><span class="p">(</span><span class="n">SetFunction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Wrapper class for instantiating set functions with a callable function&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span><span class="n">n</span><span class="p">,</span> <span class="n">use_call_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_loop</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span> <span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">],</span><span class="nb">float</span><span class="p">],</span><span class="n">n</span><span class="p">,</span> <span class="n">use_call_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_loop</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;init function</span>
 
 <span class="sd">        :param s: callable function that takes a one-dimensional np.array and returns a float</span>
@@ -213,9 +315,16 @@
 <span class="sd">        :param use_loop: flag indicating whether to use a loop for calling the setfunction  </span>
 <span class="sd">        :type use_loop: bool  </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_loop</span> <span class="o">=</span> <span class="n">use_loop</span>
+        <span class="k">if</span> <span class="n">use_call_dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">call_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">call_dict</span> <span class="o">=</span> <span class="kc">None</span>
         
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indicator</span> <span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indicator</span> <span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;calls set function with np.array of indicator vectors</span>
 
 <span class="sd">            :param indicators: two dimensional np.array with one indicator vector per row</span>
@@ -225,7 +334,31 @@
 <span class="sd">            :return: a np.array of set function evaluations</span>
 <span class="sd">            :rtype: npt.NDArray[float64]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indicator</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">indicator</span> <span class="o">=</span> <span class="n">indicator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">call_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">indicator</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ind</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">call_dict</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">call_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">count_flag</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">call_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_loop</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">indicator</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">(</span><span class="n">ind</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="n">count_flag</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">count_flag</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">+=</span> <span class="n">indicator</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">(</span><span class="n">indicator</span><span class="p">)</span>
 
 <div class="viewcode-block" id="WrapSetFunction.transform_fast"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.WrapSetFunction.transform_fast">[docs]</a>    <span class="k">def</span> <span class="nf">transform_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;fast Fourier transformation algorithm (not advised)</span>
@@ -235,7 +368,17 @@
 <span class="sd">        :returns: a sparseDSFTFunction object of the desired model </span>
 <span class="sd">        :rtype: sparseDSFTFunction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: About to execute 2^n queries of the setfunction. Not advised to be used with larger n. </span><span class="se">\n</span><span class="s2"> Do you wish to proceed? [y/n]&quot;</span><span class="p">)</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="nb">input</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">inp</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span><span class="p">):</span>
+            <span class="n">inds</span> <span class="o">=</span> <span class="n">get_indicator_set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">inds</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">inp</span> <span class="o">==</span> <span class="s1">&#39;n&#39;</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Please input y to confirm or n to abort&quot;</span><span class="p">)</span>
+        <span class="n">fast_transformer</span> <span class="o">=</span> <span class="n">transformations</span><span class="o">.</span><span class="n">FastSFT</span><span class="p">(</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fast_transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span></div>
         
 <div class="viewcode-block" id="WrapSetFunction.transform_sparse"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.WrapSetFunction.transform_sparse">[docs]</a>    <span class="k">def</span> <span class="nf">transform_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span><span class="n">k_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span><span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span><span class="n">flag_print</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span><span class="n">flag_general</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;sparse Fourier transformation algorithm</span>
@@ -244,11 +387,12 @@
 <span class="sd">        :returns: a sparseDSFTFunction object of the desired model </span>
 <span class="sd">        :rtype: sparseDSFTFunction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div></div>
+        <span class="n">sparse_transformer</span> <span class="o">=</span> <span class="n">transformations</span><span class="o">.</span><span class="n">SparseSFT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">k_max</span> <span class="o">=</span> <span class="n">k_max</span><span class="p">,</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span><span class="p">,</span><span class="n">flag_print</span><span class="o">=</span><span class="n">flag_print</span><span class="p">,</span><span class="n">flag_general</span> <span class="o">=</span> <span class="n">flag_general</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sparse_transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
 
 <div class="viewcode-block" id="SparseDSFTFunction"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.SparseDSFTFunction">[docs]</a><span class="k">class</span> <span class="nc">SparseDSFTFunction</span><span class="p">(</span><span class="n">SetFunction</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span> <span class="p">,</span> <span class="n">coefficients</span> <span class="p">,</span> <span class="n">model</span> <span class="p">:</span> <span class="nb">str</span> <span class="p">,</span><span class="n">normalization_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span> <span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">coefficients</span> <span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">model</span> <span class="p">:</span> <span class="nb">str</span> <span class="p">,</span><span class="n">normalization_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Initializes a Sparse Fourier transformed set function object for the desired model</span>
 
 <span class="sd">            :param frequencies: two dimensional np.array of type np.int32 or np.bool with one indicator vector per row</span>
@@ -260,7 +404,14 @@
 <span class="sd">            :param normalization_flag: Only used for model 5/WHT flag indicates whether call should normalize values or not. Default is False</span>
 <span class="sd">            :type normalization_flag: bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freq_sums</span> <span class="o">=</span> <span class="n">frequencies</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span> <span class="o">=</span> <span class="n">frequencies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="n">coefficients</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">longdouble</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;3&#39;</span><span class="p">,</span><span class="s1">&#39;3SI&#39;</span><span class="p">,</span><span class="s1">&#39;W3&#39;</span><span class="p">,</span><span class="s1">&#39;4&#39;</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">,</span><span class="s1">&#39;WHT&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unknown model type. Please choose valid model type&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalization</span> <span class="o">=</span> <span class="n">normalization_flag</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indicators</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; reconstructs the original set function evaluation for a set of input indicator vectors from it&#39;s sparse transformation</span>
@@ -272,7 +423,37 @@
 <span class="sd">            :return: a np.array of set function evaluations</span>
 <span class="sd">            :rtype: npt.NDArray[float64]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">indicators</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span>
+        <span class="n">fsum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq_sums</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">ind</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3SI&#39;</span><span class="p">):</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="n">fsum</span> <span class="o">*</span> <span class="n">coefs</span>
+            <span class="n">active</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">active</span> <span class="o">=</span> <span class="n">active</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="n">coefs</span>
+            <span class="n">active</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">active</span> <span class="o">=</span> <span class="n">active</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span><span class="p">):</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="o">**</span><span class="p">(</span><span class="n">fsum</span><span class="p">)</span> <span class="o">*</span> <span class="n">coefs</span>
+            <span class="n">active</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">active</span> <span class="o">=</span> <span class="p">(</span><span class="n">active</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.5</span><span class="o">**</span><span class="n">ind</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">):</span>
+            <span class="n">active</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">ind</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">active</span> <span class="o">=</span> <span class="n">active</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;5&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;WHT&#39;</span><span class="p">):</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">factor</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalization</span><span class="p">:</span>
+                <span class="n">factor</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="n">n</span>
+            <span class="n">A_cap_B</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">ind</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">factor</span><span class="o">*</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="n">A_cap_B</span> <span class="o">*</span> <span class="n">coefs</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">res</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">(</span><span class="n">active</span> <span class="o">*</span> <span class="n">coefs</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span>
 
 <div class="viewcode-block" id="SparseDSFTFunction.shapley_values"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.SparseDSFTFunction.shapley_values">[docs]</a>    <span class="k">def</span> <span class="nf">shapley_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -281,7 +462,34 @@
 <span class="sd">        :returns: an np.array the length of the groundset of shapley values </span>
 <span class="sd">        :rtype: npt.NDArray[float64]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> 
+        <span class="n">card_b</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unimplemented Error: Shapley Values for Model W3 not implemented yet&quot;</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">card_b</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="n">card_b</span> <span class="o">=</span> <span class="n">card_b</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">coefs</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span><span class="s1">&#39;3SI&#39;</span><span class="p">):</span>
+            <span class="n">shapleys_of_bs</span> <span class="o">=</span> <span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">card_b</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">card_b</span><span class="p">))</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+            <span class="n">shapleys_of_bs</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">card_b</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">):</span>
+            <span class="n">shapleys_of_bs</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">card_b</span><span class="p">))</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;5&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalization</span><span class="p">:</span>
+                <span class="n">shapleys_of_bs</span> <span class="o">=</span><span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="n">n</span><span class="p">)</span><span class="o">*</span><span class="p">(((</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="n">card_b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">card_b</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">shapleys_of_bs</span> <span class="o">=</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="n">card_b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">card_b</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">indicator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="n">indicator</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">contains_i</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">indicator</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">shapleys_of_bs</span><span class="o">*</span><span class="n">contains_i</span><span class="o">*</span><span class="n">coefs</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">res</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SparseDSFTFunction.minimize_MIP"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.SparseDSFTFunction.minimize_MIP">[docs]</a>    <span class="k">def</span> <span class="nf">minimize_MIP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">C</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">cardinality_constraint</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; utilizes a Mixed Integer Program solver to minimize  a set function value</span>
@@ -293,7 +501,18 @@
 <span class="sd">        :returns: bitvector with the smallest function value and associated function value</span>
 <span class="sd">        :rtype: (npt.NDArray[bool],float)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">est</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3SI&#39;</span><span class="p">:</span>
+            <span class="n">new_coefs</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">freq_sums</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span>
+            <span class="n">est</span> <span class="o">=</span> <span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">,</span><span class="n">new_coefs</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span> 
+            <span class="n">minvec</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="n">minmax</span><span class="o">.</span><span class="n">minmax_dsft3</span><span class="p">(</span><span class="n">est</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">cardinality_constraint</span><span class="p">,</span><span class="n">maximize</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span><span class="p">:</span>
+            <span class="n">minvec</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="n">minmax</span><span class="o">.</span><span class="n">minmax_dsft3</span><span class="p">(</span><span class="n">est</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">cardinality_constraint</span><span class="p">,</span><span class="n">maximize</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+            <span class="n">minvec</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="n">minmax</span><span class="o">.</span><span class="n">minmax_dsft4</span><span class="p">(</span><span class="n">est</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">cardinality_constraint</span><span class="p">,</span><span class="n">maximize</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;5&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;WHT&#39;</span><span class="p">:</span>
+            <span class="n">minvec</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="n">minmax</span><span class="o">.</span><span class="n">minmax_wht</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cardinality_constraint</span><span class="p">,</span><span class="n">maximize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> 
+        <span class="k">return</span> <span class="n">minvec</span><span class="p">,</span> <span class="n">minval</span></div>
 
 <div class="viewcode-block" id="SparseDSFTFunction.maximize_MIP"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.SparseDSFTFunction.maximize_MIP">[docs]</a>    <span class="k">def</span> <span class="nf">maximize_MIP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">C</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">cardinality_constraint</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; utilizes a Mixed Integer Program solver to maximize  a set function value</span>
@@ -305,7 +524,19 @@
 <span class="sd">        :returns: bitvector with the largest function value and associated function value</span>
 <span class="sd">        :rtype: (npt.NDArray[bool],float)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">est</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3SI&#39;</span><span class="p">:</span>
+            <span class="n">new_coefs</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">freq_sums</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span>
+            <span class="n">est</span> <span class="o">=</span> <span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">,</span><span class="n">new_coefs</span><span class="p">)</span> 
+            <span class="n">minvec</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="n">minmax</span><span class="o">.</span><span class="n">minmax_dsft3</span><span class="p">(</span><span class="n">est</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">cardinality_constraint</span><span class="p">,</span><span class="n">maximize</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span><span class="p">:</span>
+            <span class="n">minvec</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="n">minmax</span><span class="o">.</span><span class="n">minmax_dsft3</span><span class="p">(</span><span class="n">est</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">cardinality_constraint</span><span class="p">,</span><span class="n">maximize</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+            <span class="n">minvec</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="n">minmax</span><span class="o">.</span><span class="n">minmax_dsft4</span><span class="p">(</span><span class="n">est</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">cardinality_constraint</span><span class="p">,</span><span class="n">maximize</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;5&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;WHT&#39;</span><span class="p">:</span>
+            <span class="n">minvec</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="n">minmax</span><span class="o">.</span><span class="n">minmax_wht</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cardinality_constraint</span><span class="p">,</span><span class="n">maximize</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> 
+        <span class="k">return</span> <span class="n">minvec</span><span class="p">,</span> <span class="n">minval</span></div>
+    
 <div class="viewcode-block" id="SparseDSFTFunction.spectral_energy"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.SparseDSFTFunction.spectral_energy">[docs]</a>    <span class="k">def</span> <span class="nf">spectral_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">max_card</span><span class="p">,</span><span class="n">flag_rescale</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Calculates the spectral energy for each cardinality</span>
 
@@ -317,7 +548,20 @@
 <span class="sd">            :returns: spectral energy per cardinality</span>
 <span class="sd">            :rtype: List[float]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span>
+        <span class="n">cardinalites</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">avg_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_card</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">card_i</span> <span class="o">=</span> <span class="n">cardinalites</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">freqs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">flag_rescale</span><span class="p">):</span>
+                <span class="n">avg</span> <span class="o">=</span> <span class="n">metric</span><span class="p">(</span><span class="n">card_i</span><span class="o">*</span><span class="n">coefs</span><span class="p">)</span><span class="o">/</span><span class="n">metric</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span>
+                <span class="n">avg_values</span> <span class="o">+=</span>  <span class="p">[</span><span class="n">avg</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="n">avg</span> <span class="o">=</span> <span class="n">metric</span><span class="p">(</span><span class="n">card_i</span><span class="o">*</span><span class="n">coefs</span><span class="p">)</span>
+                <span class="n">avg_values</span> <span class="o">+=</span> <span class="p">[</span><span class="n">avg</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">avg_values</span></div>
 
 <div class="viewcode-block" id="SparseDSFTFunction.force_k_sparse"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.SparseDSFTFunction.force_k_sparse">[docs]</a>    <span class="k">def</span> <span class="nf">force_k_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; creates a k-sparse estimate that only keeps the k largest coefficients</span>
@@ -327,56 +571,148 @@
 <span class="sd">            :returns: a sparseDSFTFunction object with only the k largest coefficients</span>
 <span class="sd">            :rtype: sparseDSFTFunction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span>
+        <span class="n">k_biggest_coefidx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argpartition</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">),</span><span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">))[</span><span class="o">-</span><span class="n">k</span><span class="p">:]</span>
+        <span class="n">freqs_k</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">[</span><span class="n">k_biggest_coefidx</span><span class="p">]</span>
+        <span class="n">coefs_k</span> <span class="o">=</span> <span class="n">coefs</span><span class="p">[</span><span class="n">k_biggest_coefidx</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="n">freqs_k</span><span class="p">,</span><span class="n">coefs_k</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SparseDSFTFunction.export_to_csv"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.SparseDSFTFunction.export_to_csv">[docs]</a>    <span class="k">def</span> <span class="nf">export_to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span> <span class="o">=</span><span class="s2">&quot;dsft&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; exports the frequencies and coefficients into a csv file </span>
 <span class="sd">            :param name: name of the newly created file</span>
 <span class="sd">            :type name: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div></div>
+        <span class="n">df_freqs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">)</span>
+        <span class="n">df_coefs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">)</span>
+        <span class="n">df_dsft</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_freqs</span><span class="p">,</span><span class="n">df_coefs</span><span class="p">],</span><span class="n">axis</span> <span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">df_dsft</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span><span class="p">)</span></div></div>
     
 <div class="viewcode-block" id="DSFT3OneHop"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.DSFT3OneHop">[docs]</a><span class="k">class</span> <span class="nc">DSFT3OneHop</span><span class="p">(</span><span class="n">SetFunction</span><span class="p">):</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">set_function</span><span class="p">,</span><span class="n">model</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">set_function</span> <span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">],</span><span class="nb">float</span><span class="p">],</span><span class="n">model</span> <span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        @param n: integer for groundset size</span>
 <span class="sd">        @param weights: ???</span>
 <span class="sd">        @param set_function: callable function that takes a one-dimensional np.array and returns a float</span>
 <span class="sd">        @param model: a string that&#39;s either &#39;3&#39; or &#39;W3&#39; signaling which model to use</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">set_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">model</span> <span class="o">!=</span> <span class="s1">&#39;3&#39;</span> <span class="ow">and</span> <span class="n">model</span> <span class="o">!=</span> <span class="s1">&#39;W3&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;model has to be a string that is either 3 or W3&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+            <span class="n">model</span> <span class="o">=</span><span class="s1">&#39;3SI&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
     
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indicators</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">True</span> <span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indicators</span> <span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">True</span> <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        @param indicators: two dimensional np.array of type np.int32 or np.bool</span>
 <span class="sd">        with one indicator vector per row</span>
 <span class="sd">        @param count_flag: a flag indicating whether to count set function evaluations</span>
 <span class="sd">        @returns: a np.array of set function evaluations</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indicators</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">indicators</span> <span class="o">=</span> <span class="n">indicators</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">indicators</span><span class="p">:</span>
+            <span class="n">nc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">count_flag</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">+=</span> <span class="p">(</span><span class="n">nc</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">ind</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span>
+            <span class="n">ind_shifted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">ind</span><span class="p">,</span> <span class="p">[</span><span class="n">nc</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">ind_shifted</span><span class="p">[:,</span> <span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">nc</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">ind</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">ind_one_hop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">ind</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">ind_shifted</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">weight_s0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">weights</span><span class="p">[</span><span class="kc">True</span><span class="o">^</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="n">active_weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">weight_s0</span><span class="p">,</span> <span class="n">weights</span><span class="p">[</span><span class="n">mask</span><span class="p">]])</span>
+            <span class="n">res</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">s</span><span class="p">(</span><span class="n">ind_one_hop</span><span class="p">)</span><span class="o">*</span><span class="n">active_weights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()]</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span>
     
 <div class="viewcode-block" id="DSFT3OneHop.convertCoefs"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.DSFT3OneHop.convertCoefs">[docs]</a>    <span class="k">def</span> <span class="nf">convertCoefs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimate</span><span class="p">):</span>
-        <span class="k">pass</span></div></div>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">estimate</span><span class="o">.</span><span class="n">freqs</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">estimate</span><span class="o">.</span><span class="n">coefs</span>
+        <span class="n">coefs_new</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">coefs</span><span class="p">):</span>
+            <span class="n">coefs_new</span> <span class="o">+=</span> <span class="p">[</span><span class="n">value</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="kc">True</span><span class="o">^</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())]</span>
+        <span class="k">return</span> <span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="n">freqs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">coefs_new</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span></div></div>
 
 <div class="viewcode-block" id="DSFT4OneHop"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.DSFT4OneHop">[docs]</a><span class="k">class</span> <span class="nc">DSFT4OneHop</span><span class="p">(</span><span class="n">SetFunction</span><span class="p">):</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">set_function</span><span class="p">,</span><span class="n">model</span><span class="p">):</span>
-        <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">set_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
     
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indicators</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sample_optimal</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="k">pass</span>
-
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indicators</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">indicators</span> <span class="o">=</span> <span class="n">indicators</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span>
+        <span class="k">if</span> <span class="n">sample_optimal</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">indicators</span><span class="p">:</span>
+                <span class="n">nc</span> <span class="o">=</span> <span class="n">ind</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">count_flag</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">+=</span> <span class="p">(</span><span class="n">nc</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">ind</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span>
+                <span class="n">ind_shifted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">ind</span><span class="p">,</span> <span class="p">[</span><span class="n">nc</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">ind_shifted</span><span class="p">[:,</span> <span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">nc</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">ind</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">ind_one_hop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">ind</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">ind_shifted</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">weight_s0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">weights</span><span class="p">[</span><span class="kc">True</span><span class="o">^</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+                <span class="n">active_weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">weight_s0</span><span class="p">,</span> <span class="n">weights</span><span class="p">[</span><span class="n">mask</span><span class="p">]])</span>
+                <span class="n">res</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">s</span><span class="p">(</span><span class="n">ind_one_hop</span><span class="p">)</span><span class="o">*</span><span class="n">active_weights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()]</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">s</span><span class="p">(</span><span class="n">indicators</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">weights</span><span class="p">):</span>
+                <span class="n">ind_shifted</span> <span class="o">=</span> <span class="n">indicators</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">ind_shifted</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">res</span> <span class="o">+=</span> <span class="n">weight</span><span class="o">*</span><span class="n">s</span><span class="p">(</span><span class="n">ind_shifted</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">count_flag</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">+=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">indicators</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">res</span>
     
 <div class="viewcode-block" id="DSFT4OneHop.convertCoefs"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.DSFT4OneHop.convertCoefs">[docs]</a>    <span class="k">def</span> <span class="nf">convertCoefs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimate</span><span class="p">):</span>
-        <span class="k">pass</span></div></div>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">estimate</span><span class="o">.</span><span class="n">freqs</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">estimate</span><span class="o">.</span><span class="n">coefs</span>
+        <span class="n">coefs_new</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">coefs</span><span class="p">):</span>
+            <span class="n">coefs_new</span> <span class="o">+=</span> <span class="p">[</span><span class="n">value</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="kc">True</span><span class="o">^</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())]</span>
+        <span class="k">return</span> <span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="n">freqs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">coefs_new</span><span class="p">),</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span></div></div>
 
 <div class="viewcode-block" id="WHTOneHop"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.WHTOneHop">[docs]</a><span class="k">class</span> <span class="nc">WHTOneHop</span><span class="p">(</span><span class="n">SetFunction</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">set_function</span><span class="p">,</span><span class="n">model</span> <span class="p">):</span>
-        <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">set_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
     
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indicators</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="k">pass</span></div>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indicators</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">indicators</span> <span class="o">=</span> <span class="n">indicators</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">if</span> <span class="n">count_flag</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">call_counter</span> <span class="o">+=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">indicators</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">s</span><span class="p">(</span><span class="n">indicators</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">weights</span><span class="p">):</span>
+            <span class="n">ind_shifted</span> <span class="o">=</span> <span class="n">indicators</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">ind_shifted</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="o">^</span><span class="n">ind_shifted</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">res</span> <span class="o">+=</span> <span class="n">weight</span><span class="o">*</span><span class="n">s</span><span class="p">(</span><span class="n">ind_shifted</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span></div>
     
 <div class="viewcode-block" id="eval_sf"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.eval_sf">[docs]</a><span class="k">def</span> <span class="nf">eval_sf</span><span class="p">(</span><span class="n">gt</span> <span class="p">:</span> <span class="n">SetFunction</span><span class="p">,</span> <span class="n">estimate</span> <span class="p">:</span> <span class="n">SetFunction</span><span class="p">,</span> <span class="n">n</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">err_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;rel&quot;</span><span class="p">],</span> <span class="n">custom_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -386,10 +722,40 @@
 <span class="sd">        @param n_samples: number of random measurements for the evaluation</span>
 <span class="sd">        @param err_type: either mae or relative reconstruction error</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    <span class="k">if</span> <span class="n">custom_samples</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">binomial</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">custom_samples</span>
+    <span class="n">gt_vec</span> <span class="o">=</span> <span class="n">gt</span><span class="p">(</span><span class="n">ind</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">est_vec</span> <span class="o">=</span> <span class="n">estimate</span><span class="p">(</span><span class="n">ind</span><span class="p">,</span> <span class="n">count_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># print(f&#39;ground truth: {gt_vec[:10]}&#39;)</span>
+    <span class="c1"># print(f&#39;estimate: {est_vec[:10]}&#39;)</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">err_type</span> <span class="ow">in</span> <span class="n">err_types</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">err_type</span><span class="o">==</span><span class="s2">&quot;mae&quot;</span><span class="p">:</span>
+            <span class="n">errors</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">gt_vec</span> <span class="o">-</span> <span class="n">est_vec</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">n_samples</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="n">err_type</span><span class="o">==</span><span class="s2">&quot;rel&quot;</span><span class="p">:</span>
+            <span class="n">errors</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">gt_vec</span> <span class="o">-</span> <span class="n">est_vec</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">gt_vec</span><span class="p">))]</span>
+        <span class="k">elif</span> <span class="n">err_type</span><span class="o">==</span><span class="s2">&quot;inf&quot;</span><span class="p">:</span>
+            <span class="n">errors</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">gt_vec</span> <span class="o">-</span> <span class="n">est_vec</span><span class="p">,</span> <span class="nb">ord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="n">err_type</span><span class="o">==</span><span class="s2">&quot;res_quantiles&quot;</span><span class="p">:</span>
+            <span class="n">errors</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">gt_vec</span> <span class="o">-</span> <span class="n">est_vec</span><span class="p">),</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">])]</span>
+        <span class="k">elif</span> <span class="n">err_type</span><span class="o">==</span><span class="s2">&quot;quantiles&quot;</span><span class="p">:</span>
+            <span class="n">errors</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">gt_vec</span><span class="p">),</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">])]</span>
+        <span class="k">elif</span> <span class="n">err_type</span><span class="o">==</span><span class="s2">&quot;res&quot;</span><span class="p">:</span>
+            <span class="n">errors</span> <span class="o">+=</span> <span class="p">[</span><span class="n">gt_vec</span> <span class="o">-</span> <span class="n">est_vec</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">err_type</span><span class="o">==</span><span class="s2">&quot;raw&quot;</span><span class="p">:</span>
+            <span class="n">errors</span> <span class="o">+=</span> <span class="p">[</span><span class="n">gt_vec</span><span class="p">,</span> <span class="n">est_vec</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">err_type</span><span class="o">==</span><span class="s2">&quot;R2&quot;</span><span class="p">:</span>
+            <span class="n">gt_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">gt_vec</span><span class="p">)</span>
+            <span class="n">errors</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">est_vec</span> <span class="o">-</span> <span class="n">gt_vec</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">gt_vec</span> <span class="o">-</span> <span class="n">gt_mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Supported error types: mae, rel, inf, res_quantiles, quantiles&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">errors</span></div>
+
 <div class="viewcode-block" id="createRandomSparse"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.createRandomSparse">[docs]</a><span class="k">def</span> <span class="nf">createRandomSparse</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">constructor</span><span class="p">,</span> 
-                      <span class="n">rand_sets</span><span class="p">,</span>
-                      <span class="n">rand_vals</span><span class="p">):</span>
+                      <span class="n">rand_sets</span><span class="o">=</span><span class="k">lambda</span> <span class="n">size</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">binomial</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">size</span><span class="p">),</span>
+                      <span class="n">rand_vals</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">k</span><span class="p">))</span><span class="o">*</span><span class="mi">20</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    @param n: size of the ground set</span>
 <span class="sd">    @param k: desired sparsity</span>
@@ -398,10 +764,28 @@
 <span class="sd">    @param rand_vals: a random Fourier coefficient generator</span>
 <span class="sd">    @returns: a fourier sparse set function, the actual sparsity</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    <span class="n">freq_coef_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">freqs</span> <span class="o">=</span> <span class="n">rand_sets</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="n">coefs</span> <span class="o">=</span> <span class="n">rand_vals</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+    <span class="n">coefs</span><span class="p">[</span><span class="n">coefs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">freq</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">coefs</span><span class="p">):</span>
+        <span class="n">freq_coef_dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">freq</span><span class="o">.</span><span class="n">tolist</span><span class="p">())]</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="n">freq_coef_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">freq_coef_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">freq_coef_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">constructor</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">coefs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="build_from_csv"><a class="viewcode-back" href="../../setFTs.html#setFTs.setfunctions.build_from_csv">[docs]</a><span class="k">def</span> <span class="nf">build_from_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> 
+    <span class="n">df_freqs</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">df_coefs</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">freqs</span> <span class="o">=</span> <span class="n">df_freqs</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">coefs</span> <span class="o">=</span> <span class="n">df_coefs</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span><span class="n">coefs</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">WrapSignal</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
