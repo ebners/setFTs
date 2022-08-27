@@ -1,0 +1,10 @@
+^C:\USERS\SIMON\DOCUMENTS\ETH\BACHELOR THESIS\SETFTS\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/simon/Documents/ETH/Bachelor Thesis/setFTs" "-BC:/Users/simon/Documents/ETH/Bachelor Thesis/setFTs/build/temp.win-amd64-3.9/Release/setFTs.fast" --check-stamp-file "C:/Users/simon/Documents/ETH/Bachelor Thesis/setFTs/build/temp.win-amd64-3.9/Release/setFTs.fast/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
