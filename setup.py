@@ -120,7 +120,7 @@ from subprocess import CalledProcessError
 
 kwargs = dict(
     name='setFTs',
-    version='0.0.1.0',
+    version='0.0.1.2',
     author='Simon Ebner',
     author_email='ebners@ethz.ch',
     description='A collection of Discrete Set Fourier Transformation Algorithms',
