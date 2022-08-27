@@ -12,8 +12,9 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../setFTs'))
-
+sys.path.insert(0, os.path.abspath('..'))
+import setFTs.setfunctions
+import setFTs.plotting
 
 
 
