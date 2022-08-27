@@ -7,7 +7,7 @@ Welcome to setFTs's documentation!
 ==================================
 
 .. toctree::
-   modules
+   modules.rst
 
 
 Indices and tables
