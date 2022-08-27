@@ -8,11 +8,3 @@ Welcome to setFTs's documentation!
 
 .. toctree::
    modules
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
