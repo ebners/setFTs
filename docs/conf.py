@@ -12,8 +12,8 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
-import setFTs
+sys.path.insert(0, os.path.abspath('../setFTs'))
+
 
 
 
