@@ -1,12 +1,19 @@
 from cProfile import label
 from tempfile import NamedTemporaryFile
 
-#import numpy as np
-#import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.pyplot as plt
 
 from setFTs import setfunctions
 
 def plot_freq_card(sf,plot_type = 'bar'):
+    '''plot the number of frequencies per cardinality
+    
+    :param sf: SetFunction object
+    :type sf: setfunctions.SetFunction
+    :param plot_type: specifies plot type. Either 'bar' or 'plot
+    :type plot_type: str
+    '''
     indicators = sf.freqs
     n = np.shape(indicators)[1]
     freq_count = np.zeros(n+1)
@@ -25,6 +32,15 @@ def plot_freq_card(sf,plot_type = 'bar'):
         plt.close()
 
 def plot_freq_card_multi(sf_list,label_list,plot_type = 'bar'):
+    '''plot the number of frequencies per cardinality for multiple setfunctions
+    
+    :param sf_list: list of SetFunction objects
+    :type sf_list: List[setfunctions.SetFunctions]
+    :param label_list: list of labels for the setfunctions in corresponding order
+    :type  label_list: List[str]
+    :param plot_type: specifies plot type. Either 'bar' or 'plot
+    :type plot_type: str
+    '''
     freq_count_list = []
     if(len(sf_list) > 1):
         width = 1/len(sf_list)
@@ -54,6 +70,17 @@ def plot_freq_card_multi(sf_list,label_list,plot_type = 'bar'):
         plt.close()
 
 def plot_spectral_energy(sf,max_card,flag_rescale =True,plot_type = 'plot'):
+    '''plot the average coefficient for each cardinality
+    
+    :param sf: SetFunction object
+    :type sf: setfunctions.SetFunction
+    :param max_card: maximal cardinality to consider
+    :type max_card: int
+    :param flag_rescale: flag that enables normalization
+    :type flag_rescale: bool
+    :param plot_type: specifies plot type. Either 'bar' or 'plot
+    :type plot_type: str
+    '''
     n = np.shape(sf.freqs)[1]
     spec_energy = sf.spectral_energy(max_card,flag_rescale)
     with NamedTemporaryFile(suffix='.pdf',delete=False) as f:
@@ -70,6 +97,19 @@ def plot_spectral_energy(sf,max_card,flag_rescale =True,plot_type = 'plot'):
         plt.close()
 
 def plot_spectral_energy_multi(sf_list,label_list,max_card,flag_rescale = True, plot_type = 'plot'):
+    '''plot the average coefficient for each cardinality for multiple set functions
+    
+    :param sf_list: list of SetFunction objects
+    :type sf_list: List[setfunctions.SetFunctions]
+    :param label_list: list of labels for the setfunctions in corresponding order
+    :type  label_list: List[str]
+    :param max_card: maximal cardinality to consider
+    :type max_card: int
+    :param flag_rescale: flag that enables normalization
+    :type flag_rescale: bool
+    :param plot_type: specifies plot type. Either 'bar' or 'plot
+    :type plot_type: str
+    '''
     spect_list =[]
     if(len(sf_list) > 1):
         width = 1/len(sf_list)
@@ -96,6 +136,15 @@ def plot_spectral_energy_multi(sf_list,label_list,max_card,flag_rescale = True, 
         plt.close()
 
 def plot_scatter(sf,label,max_card):
+    '''plots the coefficients of a setfunction per cardinality as a scatterplot
+    
+    :param sf: SetFunction object
+    :type sf: setfunctions.SetFunction
+    :param label: name of the setfunction
+    :type label: str
+    :param max_card: maximal cardinality to consider
+    :type max_card: int
+    '''
     #metric = lambda x: np.linalg.norm(x)**2
     with NamedTemporaryFile(suffix='.pdf',delete=False) as f:
         #coef_size = metric(sf.coefs)
@@ -110,6 +159,17 @@ def plot_scatter(sf,label,max_card):
         plt.close()
 
 def plot_max_greedy(sf_list,label_list,n,max_card):
+    '''plots the result of the greedy maximization when restricted to each cardinality
+    
+    :param sf_list: list of SetFunction objects
+    :type sf_list: List[setfunctions.SetFunctions]
+    :param label_list: list of labels for the setfunctions in corresponding order
+    :type  label_list: List[str]
+    :param n: ground set size
+    :type n: int
+    :param max_card: maximal cardinality to consider
+    :type max_card: int
+    '''
     values_list = []
     for sf in sf_list:
         values = []
@@ -132,6 +192,17 @@ def plot_max_greedy(sf_list,label_list,n,max_card):
         plt.close()
 
 def plot_min_greedy(sf_list,label_list,n,max_card):
+    '''plots the result of the greedy minimization when restricted to each cardinality
+    
+    :param sf_list: list of SetFunction objects
+    :type sf_list: List[setfunctions.SetFunctions]
+    :param label_list: list of labels for the setfunctions in corresponding order
+    :type  label_list: List[str]
+    :param n: ground set size
+    :type n: int
+    :param max_card: maximal cardinality to consider
+    :type max_card: int
+    '''
     values_list = []
     for sf in sf_list:
         values = []
@@ -154,6 +225,15 @@ def plot_min_greedy(sf_list,label_list,n,max_card):
         plt.close()
 
 def plot_max_mip(ft_list,label_list,max_card):
+    '''plots the result of the MIP-based maximization when restricted to each cardinality
+    
+    :param ft_list: list of SetFunction objects
+    :type ft_list: List[setfunctions.SetFunctions]
+    :param label_list: list of labels for the setfunctions in corresponding order
+    :type  label_list: List[str]
+    :param max_card: maximal cardinality to consider
+    :type max_card: int
+    '''
     values_fts = []
     for ft in ft_list:
         values_ft = []
@@ -175,6 +255,15 @@ def plot_max_mip(ft_list,label_list,max_card):
         plt.close()
 
 def plot_min_mip(ft_list,label_list,max_card):
+    '''plots the result of the MIP-based minimization when restricted to each cardinality
+    
+    :param ft_list: list of SetFunction objects
+    :type ft_list: List[setfunctions.SetFunctions]
+    :param label_list: list of labels for the setfunctions in corresponding order
+    :type  label_list: List[str]
+    :param max_card: maximal cardinality to consider
+    :type max_card: int
+    '''
     values_fts = []
     for ft in ft_list:
         values_ft = []
@@ -196,6 +285,17 @@ def plot_min_mip(ft_list,label_list,max_card):
         plt.close()
     
 def plot_reconstruction_error(sf,n,err_types = ['rel'],model = '3',flag_general = True):
+    '''plots the reconstruction error when approximated with the sparse algorithm with different eps values
+    
+    :param sf: SetFunction object
+    :type sf: setfunctions.SetFunction
+    :param err_types: list of error calculations to perform
+    :type err_types: List[str]
+    :param model: Fourier transformation base to consider
+    :type model: int
+    :param flag_general: enables random one hop filtering
+    :type flag_general: bool
+    '''
     num_errors = len(err_types)
     error_values = [[] for _ in range(num_errors)]
     for i in range(2,9):
@@ -224,6 +324,21 @@ def plot_reconstruction_error(sf,n,err_types = ['rel'],model = '3',flag_general 
         plt.close()
 
 def plot_reconstruction_error_biggest_coefs(sf,n,max_sparsity,interval,err_types = ['rel'],model ='3'):
+    '''plots the reconstruction error when approximated with the sparse algorithm constrained to only the biggest coefs
+    
+    :param sf: SetFunction object
+    :type sf: setfunctions.SetFunction
+    :param n: ground set size
+    :type n: int
+    :param max_sparsity: maximal sparsity to consider
+    :type max_sparsity: int
+    :param interval: increment of sparsity
+    :type interval: int
+    :param err_types: list of error calculations to perform
+    :type err_types: List[str]
+    :param model: Fourier transformation base to consider
+    :type model: int
+    '''
     num_errors = len(err_types)
     error_values = [[] for _ in range(num_errors)]
     if model == '3':
@@ -251,6 +366,15 @@ def plot_reconstruction_error_biggest_coefs(sf,n,max_sparsity,interval,err_types
         plt.close()
         
 def plot_minimization_found(sf,model = '3',greedy = False):
+    '''plots the minimal value found when performing a minimization algorithm on an eps sparse approximation
+    
+    :param sf: SetFunction object
+    :type sf: setfunctions.SetFunction    
+    :param model: Fourier transformation base to consider
+    :type model: int
+    :param greedy: flag indicating whether greedy (True) or MIP based algorithm (False) should be used 
+    :type greedy: bool
+    '''
     minvals = []
     for i in range(2,9):
         eps_i = float("1e-%d" %i)
@@ -276,6 +400,19 @@ def plot_minimization_found(sf,model = '3',greedy = False):
         plt.close()
         
 def plot_minimization_found_biggest_coefs(sf,max_sparsity,interval,model = '3',greedy = False):
+    '''plots the minimal value found when performing a minimization algorithm constrained to its biggest coefficients
+    
+    :param sf: SetFunction object
+    :type sf: setfunctions.SetFunction
+    :param max_sparsity: maximal sparsity to consider
+    :type max_sparsity: int
+    :param interval: increment of sparsity
+    :type interval: int
+     :param model: Fourier transformation base to consider
+    :type model: int
+    :param greedy: flag indicating whether greedy (True) or MIP based algorithm (False) should be used 
+    :type greedy: bool
+    '''
     minvals = []
     if model == '3':
         est = sf.transform_sparse(model = '3')

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setFTs
-Version: 0.0.1.0
+Version: 0.0.1.2
 Summary: A collection of Discrete Set Fourier Transformation Algorithms
 Author: Simon Ebner
 Author-email: ebners@ethz.ch

@@ -5,9 +5,9 @@ import numpy as np
 import scipy
 import scipy.linalg
 
-from dsft import setfunctions as sf
-from dsft import utils 
-from dsft import fast 
+from setFTs import setfunctions as sf
+from setFTs import utils 
+from setFTs import fast 
 
 class FastSFT:
     def __init__(self,model : str = '3'):

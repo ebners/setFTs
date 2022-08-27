@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 import matplotlib.pyplot as plt
 
-from dsft import setfunctions
+from setFTs import setfunctions
 
 def plot_freq_card(sf,plot_type = 'bar'):
     indicators = sf.freqs

@@ -4,6 +4,14 @@ setFTs package
 Submodules
 ----------
 
+setFTs.setfunctions module
+--------------------------
+
+.. automodule:: setFTs.setfunctions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 setFTs.plotting module
 ----------------------
 
@@ -12,10 +20,3 @@ setFTs.plotting module
    :undoc-members:
    :show-inheritance:
 
-setFTs.setfunctions module
---------------------------
-
-.. automodule:: setFTs.setfunctions
-   :members:
-   :undoc-members:
-   :show-inheritance:

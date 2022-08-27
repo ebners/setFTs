@@ -12,31 +12,33 @@ import numpy.typing as npt
 import pandas as pd
 
 
-from dsft import minmax
-from dsft import fast
-from dsft.utils import get_indicator_set,int2indicator
-from dsft import transformations
+from setFTs import minmax
+from setFTs.utils import get_indicator_set,int2indicator
+from setFTs import transformations
 
 
 class SetFunction(ABC): 
     """A parent class solely for inheritance purposes"""   
     def __call__(self, indicators, count_flag=True):
         """
-            @param indicators: two dimensional np.array of type np.int32 or np.bool
-            with one indicator vector per row
-            @param count_flag: a flag indicating whether to count set function evaluations
-            @returns: a np.array of set function evaluations
+            :param indicators: two dimensional np.array with one indicator vector per row
+            :type indicators: np.array of type np.int32 or np.bool
+            :param count_flag: a flag indicating whether to count set function evaluations
+            :type count_flag: bool
+            :return: a np.array of set function evaluations
+            :rtype: float
         """
         pass
     
     def gains(self, n : int , S0,maximize = True):
-        """ Helper function for greedy min/max. Finds element that will increase the set function
-        value the most, if added to an input subset
+        """ Helper function for greedy min/max. Finds element that will increase the set function value the most, if added to an input subset.
 
-        @param n: integer representing groundset size
-        @param S0: indicator vector to be improved upon
-        @returns: integer index of element that produces the biggest gain if changed to 1
-                  and the corresponding value gain
+        :param n:groundset size
+        :type n: int
+        :param S0: indicator vector to be improved upon
+        :type S0: np.array of type np.int32 or np.bool
+        :returns: integer index of element that produces the biggest gain if changed to 1 and the corresponding value gain
+        :rtype: (np.array,float)
         """
        
         N = np.arange(n)
@@ -73,12 +75,16 @@ class SetFunction(ABC):
 
     def minimize_greedy(self, n : int, max_card : int, verbose=False, force_card=False):
         """ Greedy minimization algorithm for set functions. (Does not guarantee that the optimal solution is found)
-
-        @param n: integer representing groundset size
-        @param max_card: integer representing upper limit of cardinality up to which the greedy algorithm should check
-        @param verbose: flag to enable to print gain information for each cardinality
-        @param force_card: flag that forces the algorithm to continue until specified max_card is reached
-        @returns: an np.array indicator vector of booleans that minimizes the setfunction and the evaluated setfunction for that indicator
+        :param n: groundset size
+        :type n: int
+        :param max_card: upper limit of cardinality up to which the greedy algorithm should check
+        :type max_card: int
+        :param verbose: flag to enable to print gain information for each cardinality
+        :type verbose: bool
+        :param force_card: flag that forces the algorithm to continue until specified max_card is reached
+        :type force_card: bool
+        :returns: an np.array indicator vector of booleans that minimizes the setfunction and the evaluated setfunction for that indicator
+        :rtype:(np.array,float)
         """
         S0 = np.zeros(n, dtype=bool)
         for t in range(max_card):
@@ -94,11 +100,16 @@ class SetFunction(ABC):
 
     def maximize_greedy(self, n : int, max_card : int, verbose=False, force_card=False):
         """ Greedy maximization algorithm for set functions. (Does not guarantee that the optimal solution is found)
-        @param n: integer representing groundset size
-        @param max_card: integer representing upper limit of cardinality up to which the greedy algorithm should check
-        @param verbose: flag to enable to print gain information for each cardinality
-        @param force_card: flag that forces the algorithm to continue until specified max_card is reached
-        @returns: an np.array indicator vector of booleans that maximizes the setfunction and the evaluated setfunction for that indicator
+        :param n: groundset size
+        :type n: int
+        :param max_card: upper limit of cardinality up to which the greedy algorithm should check
+        :type max_card: int
+        :param verbose: flag to enable to print gain information for each cardinality
+        :type verbose: bool
+        :param force_card: flag that forces the algorithm to continue until specified max_card is reached
+        :type force_card: bool
+        :returns: an np.array indicator vector of booleans that maximizes the setfunction and the evaluated setfunction for that indicator
+        :rtype:(np.array,float)
         """
         S0 = np.ones(n, dtype=bool)
         for t in range(max_card):
@@ -117,7 +128,8 @@ class WrapSignal(SetFunction):
     def __init__(self,signal : List[float]):
         """initializes setfunction with list
 
-        @param signal complete list of float outputs of a setfunction in lexicographical ordering
+        :param signal: complete list of float outputs of a setfunction in lexicographical ordering
+        :type signal: List[float]
         """
         self.n = int(log2(len(signal)))
         self.freqs = get_indicator_set(int(log2(len(signal))))
@@ -127,10 +139,12 @@ class WrapSignal(SetFunction):
     def __call__(self,indicator : npt.NDArray, count_flag : bool=True) -> npt.NDArray[np.float64]:
         """calls set function with np.array of indicator vectors
 
-        @param indicators: two dimensional np.array of type np.int32 or np.bool
-        with one indicator vector per row
-        @param count_flag: flag indicating whether to count set function evaluations
-        @returns: np.array of set function evaluations
+            :param indicators: two dimensional np.array with one indicator vector per row
+            :type indicators: np.array of type np.int32 or np.bool
+            :param count_flag: a flag indicating whether to count set function evaluations
+            :type count_flag: bool
+            :return: a np.array of set function evaluations
+            :rtype: npt.NDArray[float64]
         """
 
         if len(indicator.shape) < 2:
@@ -143,10 +157,14 @@ class WrapSignal(SetFunction):
         return np.asarray(result)
 
     def spectral_energy(self,max_card,flag_rescale = True):
-        """calculates the normalized coefficient per cardinality
-        @param max_card: maximum cardinality for which to calculate the spectral energy
-        @param flag_rescale: flag indicating whether to average over all coefficients
-        @returns: list of normalized coefficient of length max_card
+        """calculates the normalized coefficients per cardinality
+
+        :param max_card: maximum cardinality for which to calculate the spectral energy
+        :type max_card: int
+        :param flag_rescale: flag indicating whether to average over all coefficients
+        :type flag_rescale: int
+        :returns: normalized coefficient of length max_card
+        :rtype: List[float]
         """
         freqs = self.freqs
         coefs = self.coefs
@@ -165,23 +183,36 @@ class WrapSignal(SetFunction):
 
     def transform_fast(self,model = '3'):
         """fast Fourier transformation algorithm
-        @param model: basis upon which to calculate the transform see arxiv.org/pdf/2001.10290.pdf for more info
-        @returns: a sparseDSFTFunction object of the desired model 
+        :param model: basis upon which to calculate the transform see arxiv.org/pdf/2001.10290.pdf for more info
+        :type model: str
+        :returns: sparseDSFTFunction object of the desired model 
+        :rtype: sparseDSFTFunction
         """
         fast_transformer = transformations.FastSFT(model = model)
         return fast_transformer.transform(self.coefs)
 
     def transform_sparse(self,model = '3',k_max = None,eps = 1e-8,flag_print = True,flag_general = True):
         """sparse Fourier transformation algorithm
-        @param model: basis upon which to calculate the Fourier transform
-        @returns: a sparseDSFTFunction object of the desired model 
+        :param model: basis upon which to calculate the Fourier transform
+        :type model: str
+        :param k_max: max number of coefficients to keep track of during computation
+        :type k_max: int
+        :param eps: eps: abs(x) < eps is treated as zero
+        :type eps: float of form 1e-i
+        :param flag_print: enables verbose mode for more information
+        :type flag_print: bool
+        :param flag_general: enables random one-hop Filtering
+        :type flag_general: bool
+        :returns: a sparseDSFTFunction object of the desired model 
+        :rtype: sparseDSFTFunction
         """
         sparse_transformer = transformations.SparseSFT(self.n,model=model,k_max = k_max,eps = eps,flag_print= flag_print,flag_general=flag_general)
         return sparse_transformer.transform(self)
 
     def min(self):
         """ finds the subset that returns the smallest set function value
-        @returns: indicator vector that minimizes the set function
+        :returns: indicator vector that minimizes the set function
+        :rtype: npt.NDArray[bool] 
         """
         sig = self.coefs
         min_index = sig.index(min(sig))
@@ -189,7 +220,8 @@ class WrapSignal(SetFunction):
     
     def max(self):
         """ finds the subset that returns the largest set function value
-        @returns: indicator vector that maximizes the set function
+        :returns: indicator vector that maximizes the set function
+        :rtype: npt.NDArray[bool] 
         """
         sig = self.coefs
         max_index = sig.index(max(sig))
@@ -197,7 +229,8 @@ class WrapSignal(SetFunction):
 
     def export_to_csv(self,name ="sf.csv"):
         """ exports the frequencies and coefficients into a csv file 
-            @param name: name of the newly created file
+            :param name: name of the newly created file ending in .csv
+            :param type: str
         """
         df_freqs = pd.DataFrame(self.freqs)
         df_coefs = pd.DataFrame(self.coefs)
@@ -207,12 +240,15 @@ class WrapSignal(SetFunction):
 class WrapSetFunction(SetFunction):
     """Wrapper class for instantiating set functions with a callable function"""
     def __init__(self, s : Callable[[npt.NDArray],float],n, use_call_dict=False, use_loop=True):
-        """
+        """init function
 
-        @param s : callable function that takes a one-dimensional np.array and returns a float
-        @param use_call_dict : flag indicating whether to use a dictionary for calling the setfunction
+        :param s: callable function that takes a one-dimensional np.array and returns a float
+        :type s: npt.NDArray[bool] - > float
+        :param use_call_dict: flag indicating whether to use a dictionary for calling the setfunction
         which results in removing duplicate indicators
-        @param use_loop: flag indicating whether to use a loop for calling the setfunction      
+        :type use_call_dict: bool
+        :param use_loop: flag indicating whether to use a loop for calling the setfunction  
+        :type use_loop: bool  
         """
         self.s = s
         self.n = n
@@ -224,11 +260,14 @@ class WrapSetFunction(SetFunction):
             self.call_dict = None
         
     def __call__(self, indicator : npt.NDArray, count_flag=True) -> npt.NDArray[np.float64]:
-        """
-        @param indicators: two dimensional np.array of type np.int32 or np.bool
-        with one indicator vector per row
-        @param count_flag: a flag indicating whether to count set function evaluations
-        @returns: a np.array of set function evaluations
+        """calls set function with np.array of indicator vectors
+
+            :param indicators: two dimensional np.array with one indicator vector per row
+            :type indicators: np.array of type np.int32 or np.bool
+            :param count_flag: a flag indicating whether to count set function evaluations
+            :type count_flag: bool
+            :return: a np.array of set function evaluations
+            :rtype: npt.NDArray[float64]
         """
         
         if len(indicator.shape) < 2:
@@ -258,8 +297,11 @@ class WrapSetFunction(SetFunction):
 
     def transform_fast(self,model = '3'):
         """fast Fourier transformation algorithm (not advised)
-        @param model: basis upon which to calculate the transform see arxiv.org/pdf/2001.10290.pdf for more info
-        @returns: a sparseDSFTFunction object of the desired model 
+
+        :param model: basis upon which to calculate the transform see arxiv.org/pdf/2001.10290.pdf for more info
+        :type model: str
+        :returns: a sparseDSFTFunction object of the desired model 
+        :rtype: sparseDSFTFunction
         """
         print("Warning: About to execute 2^n queries of the setfunction. Not advised to be used with larger n. \n Do you wish to proceed? [y/n]")
         inp = input()
@@ -275,8 +317,10 @@ class WrapSetFunction(SetFunction):
         
     def transform_sparse(self,model = '3',k_max = None,eps = 1e-8,flag_print = True,flag_general = True):
         """sparse Fourier transformation algorithm
-        @param model: basis upon which to calculate the Fourier transform
-        @returns: a sparseDSFTFunction object of the desired model 
+        :param model: basis upon which to calculate the Fourier transform
+        :type model: str
+        :returns: a sparseDSFTFunction object of the desired model 
+        :rtype: sparseDSFTFunction
         """
         sparse_transformer = transformations.SparseSFT(self.n,model=model, k_max = k_max,eps = eps,flag_print=flag_print,flag_general = flag_general)
         return sparse_transformer.transform(self)
@@ -286,12 +330,14 @@ class SparseDSFTFunction(SetFunction):
     def __init__(self, frequencies : npt.NDArray, coefficients : npt.NDArray[np.float64], model : str ,normalization_flag=False):
         """ Initializes a Sparse Fourier transformed set function object for the desired model
 
-            @param frequencies: two dimensional np.array of type np.int32 or np.bool 
-            with one indicator vector per row
-            @param coefficients: one dimensional np.array of corresponding Fourier 
-            coeffients
-            @param model: either '3','3SI','W3','4' or '5'(or'WHT')
-            @param normalization: Only used for model 5/WHT flag indicates whether call should normalize values or not. Default is False
+            :param frequencies: two dimensional np.array of type np.int32 or np.bool with one indicator vector per row
+            :type frequencies: npt.NDArray
+            :param coefficients: one dimensional np.array of corresponding Fourier coeffients
+            :type coefficients: npt.NDArray[np.float64]
+            :param model: either '3','3SI','W3','4' or '5'(or'WHT')
+            :type model: str
+            :param normalization_flag: Only used for model 5/WHT flag indicates whether call should normalize values or not. Default is False
+            :type normalization_flag: bool
         """
         self.freq_sums = frequencies.sum(axis=1)
         self.freqs = frequencies
@@ -305,10 +351,12 @@ class SparseDSFTFunction(SetFunction):
     def __call__(self, indicators, count_flag=True):
         """ reconstructs the original set function evaluation for a set of input indicator vectors from it's sparse transformation
 
-            @param indicators: two dimensional np.array of type np.int32 or np.bool
-            with one indicator vector per row
-            @param count_flag: a flag indicating whether to count set function evaluations
-            @returns: a np.array of set function evaluations
+            :param indicators: two dimensional np.array with one indicator vector per row
+            :type indicators: np.array of type np.int32 or np.bool
+            :param count_flag: a flag indicating whether to count set function evaluations
+            :type count_flag: bool
+            :return: a np.array of set function evaluations
+            :rtype: npt.NDArray[float64]
         """
         ind = indicators
         freqs = self.freqs
@@ -346,7 +394,8 @@ class SparseDSFTFunction(SetFunction):
         """
         Calculates the Shapley Values for all elements in the ground set
 
-        @returns: an np.array the length of the groundset of shapley values 
+        :returns: an np.array the length of the groundset of shapley values 
+        :rtype: npt.NDArray[float64]
         """
         freqs = self.freqs
         coefs = self.coefs
@@ -380,12 +429,12 @@ class SparseDSFTFunction(SetFunction):
     def minimize_MIP(self,C=1000., cardinality_constraint = None):
         """ utilizes a Mixed Integer Program solver to minimize  a set function value
 
-        @param self: ssftapprox.common.SparseDSFT3Function
-        @param C: parameter for the MIP, if 1000. does not work, try larger values (see https://arxiv.org/pdf/2009.10749.pdf)
-        @param cardinality_constraint: function that evaluates to true if the cardinality constraint is met.
-        Takes an integer as an input and evaluates to a bool (e.g cardinality_constraint=lambda x: x == 3)
-
-        @returns : bitvector with the smallest function value and associated function value
+        :param C: parameter for the MIP, if 1000. does not work, try larger values (see https://arxiv.org/pdf/2009.10749.pdf)
+        :type C: int
+        :param cardinality_constraint: function that evaluates to true if the cardinality constraint is met. Takes an integer as an input and evaluates to a bool (e.g cardinality_constraint=lambda x: x == 3)
+        :type cardinality_constraint: int -> bool
+        :returns: bitvector with the smallest function value and associated function value
+        :rtype: (npt.NDArray[bool],float)
         """
         est = self
         if self.model == '3SI':
@@ -403,17 +452,17 @@ class SparseDSFTFunction(SetFunction):
     def maximize_MIP(self,C=1000., cardinality_constraint = None):
         """ utilizes a Mixed Integer Program solver to maximize  a set function value
 
-        @param self: ssftapprox.common.SparseDSFT3Function
-        @param C: parameter for the MIP, if 1000. does not work, try larger values (see https://arxiv.org/pdf/2009.10749.pdf)
-        @param cardinality_constraint: function that evaluates to true if the cardinality constraint is met.
-        Takes an integer as an input and evaluates to a bool (e.g cardinality_constraint=lambda x: x == 3)
-
-        @returns : bitvector with the smallest function value and associated function value
+        :param C: parameter for the MIP, if 1000. does not work, try larger values (see https://arxiv.org/pdf/2009.10749.pdf)
+        :type C: int
+        :param cardinality_constraint: function that evaluates to true if the cardinality constraint is met. Takes an integer as an input and evaluates to a bool (e.g cardinality_constraint=lambda x: x == 3)
+        :type cardinality_constraint: int -> bool   
+        :returns: bitvector with the largest function value and associated function value
+        :rtype: (npt.NDArray[bool],float)
         """
         est = self
         if self.model == '3SI':
             new_coefs = (-1)**self.freq_sums*self.coefs
-            est = SparseDSFT3Function(self.freqs,new_coefs) 
+            est = SparseDSFTFunction(self.freqs,new_coefs) 
             minvec, minval = minmax.minmax_dsft3(est,C,cardinality_constraint,maximize = True)
         if self.model == '3' or self.model == 'W3':
             minvec, minval = minmax.minmax_dsft3(est,C,cardinality_constraint,maximize = True)
@@ -426,10 +475,13 @@ class SparseDSFTFunction(SetFunction):
     def spectral_energy(self,max_card,flag_rescale = True):
         """ Calculates the spectral energy for each cardinality
 
-            @param max_card: Maximum Cardinality to consider
-            @param flag_rescale: flag indicating whether spectral energy per cardinality
+            :param max_card: Maximum Cardinality to consider
+            :type max_card: int
+            :param flag_rescale: flag indicating whether spectral energy per cardinality
                                 should be rescaled to be relative to the total energy
-            @returns: list of floats where the i-th element is the amount of spectral energy corresponding to the i-th cardinality
+            :flag_rescale: bool
+            :returns: spectral energy per cardinality
+            :rtype: List[float]
         """
         freqs = self.freqs
         coefs = self.coefs
@@ -449,8 +501,10 @@ class SparseDSFTFunction(SetFunction):
     def force_k_sparse(self,k):
         """ creates a k-sparse estimate that only keeps the k largest coefficients
             
-            @param k: number of coefficients to keep
-            @returns: a sparseDSFTFunction object with only the k largest coefficients
+            :param k: number of coefficients to keep
+            :type k: int
+            :returns: a sparseDSFTFunction object with only the k largest coefficients
+            :rtype: sparseDSFTFunction
         """
         freqs = self.freqs
         coefs = self.coefs
@@ -462,7 +516,8 @@ class SparseDSFTFunction(SetFunction):
 
     def export_to_csv(self,name ="dsft"):
         """ exports the frequencies and coefficients into a csv file 
-            @param name: name of the newly created file
+            :param name: name of the newly created file
+            :type name: str
         """
         df_freqs = pd.DataFrame(self.freqs)
         df_coefs = pd.DataFrame(self.coefs)

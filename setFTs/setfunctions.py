@@ -5,11 +5,11 @@ from pyexpat import model
 from re import S
 from typing import Callable, List
 
-#from matplotlib import container
+from matplotlib import container
 
-#import numpy as np
-#import numpy.typing as npt
-#import pandas as pd
+import numpy as np
+import numpy.typing as npt
+import pandas as pd
 
 
 from setFTs import minmax
@@ -33,11 +33,11 @@ class SetFunction(ABC):
     def gains(self, n : int , S0,maximize = True):
         """ Helper function for greedy min/max. Finds element that will increase the set function value the most, if added to an input subset.
 
-        :param n:groundset size
+        :param n: groundset size
         :type n: int
         :param S0: indicator vector to be improved upon
         :type S0: np.array of type np.int32 or np.bool
-        :returns: integer index of element that produces the biggest gain if changed to 1 and the corresponding value gain
+        :return: integer index of element that produces the biggest gain if changed to 1 and the corresponding value gain
         :rtype: (np.array,float)
         """
        
@@ -74,7 +74,8 @@ class SetFunction(ABC):
             return min_el, min_value
 
     def minimize_greedy(self, n : int, max_card : int, verbose=False, force_card=False):
-        """ Greedy minimization algorithm for set functions. (Does not guarantee that the optimal solution is found)
+        """ Greedy minimization algorithm for set functions does not guarantee that the optimal solution is found
+        
         :param n: groundset size
         :type n: int
         :param max_card: upper limit of cardinality up to which the greedy algorithm should check
@@ -83,8 +84,8 @@ class SetFunction(ABC):
         :type verbose: bool
         :param force_card: flag that forces the algorithm to continue until specified max_card is reached
         :type force_card: bool
-        :returns: an np.array indicator vector of booleans that minimizes the setfunction and the evaluated setfunction for that indicator
-        :rtype:(np.array,float)
+        :return: an array indicator vector of booleans that minimizes the setfunction and the evaluated setfunction for that indicator
+        :rtype: (np.array,float)
         """
         S0 = np.zeros(n, dtype=bool)
         for t in range(max_card):
@@ -100,6 +101,7 @@ class SetFunction(ABC):
 
     def maximize_greedy(self, n : int, max_card : int, verbose=False, force_card=False):
         """ Greedy maximization algorithm for set functions. (Does not guarantee that the optimal solution is found)
+        
         :param n: groundset size
         :type n: int
         :param max_card: upper limit of cardinality up to which the greedy algorithm should check
@@ -108,8 +110,8 @@ class SetFunction(ABC):
         :type verbose: bool
         :param force_card: flag that forces the algorithm to continue until specified max_card is reached
         :type force_card: bool
-        :returns: an np.array indicator vector of booleans that maximizes the setfunction and the evaluated setfunction for that indicator
-        :rtype:(np.array,float)
+        :return: an np.array indicator vector of booleans that maximizes the setfunction and the evaluated setfunction for that indicator
+        :rtype: (np.array,float)
         """
         S0 = np.ones(n, dtype=bool)
         for t in range(max_card):
@@ -183,6 +185,7 @@ class WrapSignal(SetFunction):
 
     def transform_fast(self,model = '3'):
         """fast Fourier transformation algorithm
+        
         :param model: basis upon which to calculate the transform see arxiv.org/pdf/2001.10290.pdf for more info
         :type model: str
         :returns: sparseDSFTFunction object of the desired model 
@@ -193,6 +196,7 @@ class WrapSignal(SetFunction):
 
     def transform_sparse(self,model = '3',k_max = None,eps = 1e-8,flag_print = True,flag_general = True):
         """sparse Fourier transformation algorithm
+        
         :param model: basis upon which to calculate the Fourier transform
         :type model: str
         :param k_max: max number of coefficients to keep track of during computation
@@ -211,6 +215,7 @@ class WrapSignal(SetFunction):
 
     def min(self):
         """ finds the subset that returns the smallest set function value
+        
         :returns: indicator vector that minimizes the set function
         :rtype: npt.NDArray[bool] 
         """
@@ -220,6 +225,7 @@ class WrapSignal(SetFunction):
     
     def max(self):
         """ finds the subset that returns the largest set function value
+        
         :returns: indicator vector that maximizes the set function
         :rtype: npt.NDArray[bool] 
         """
@@ -229,6 +235,7 @@ class WrapSignal(SetFunction):
 
     def export_to_csv(self,name ="sf.csv"):
         """ exports the frequencies and coefficients into a csv file 
+            
             :param name: name of the newly created file ending in .csv
             :param type: str
         """
@@ -317,6 +324,7 @@ class WrapSetFunction(SetFunction):
         
     def transform_sparse(self,model = '3',k_max = None,eps = 1e-8,flag_print = True,flag_general = True):
         """sparse Fourier transformation algorithm
+        
         :param model: basis upon which to calculate the Fourier transform
         :type model: str
         :returns: a sparseDSFTFunction object of the desired model 
@@ -516,6 +524,7 @@ class SparseDSFTFunction(SetFunction):
 
     def export_to_csv(self,name ="dsft"):
         """ exports the frequencies and coefficients into a csv file 
+            
             :param name: name of the newly created file
             :type name: str
         """
@@ -650,12 +659,15 @@ class WHTOneHop(SetFunction):
         return res
     
 def eval_sf(gt : SetFunction, estimate : SetFunction, n : int, n_samples=1000, err_types=["rel"], custom_samples=None, p=0.5):
-    """
-        @param gt: a SetFunction representing the ground truth
-        @param estimate: a SetFunction 
-        @param n: the size of the ground set
-        @param n_samples: number of random measurements for the evaluation
-        @param err_type: either mae or relative reconstruction error
+    """evaluation function for setfunction. Compares an estimation to the ground truth
+
+        :param gt: a SetFunction representing the ground truth
+        :param estimate: a SetFunction 
+        :param n: the size of the ground set
+        :param n_samples: number of random measurements for the evaluation
+        :param err_types: List of strings that are mae or relative reconstruction error 
+        :returns: error values
+        :rtype: List[float]
     """
     if custom_samples is None:
         ind = np.random.binomial(1, p, (n_samples, n)).astype(np.bool)
@@ -691,13 +703,14 @@ def eval_sf(gt : SetFunction, estimate : SetFunction, n : int, n_samples=1000, e
 def createRandomSparse(n, k, constructor, 
                       rand_sets=lambda size: np.random.binomial(1, 0.2, size),
                       rand_vals=lambda k: (-0.5+np.random.rand(k))*20):
-    """
-    @param n: size of the ground set
-    @param k: desired sparsity
-    @param constructor: a Fourier Sparse SetFunction constructor
-    @param rand_sets: a random zero-one vector generator
-    @param rand_vals: a random Fourier coefficient generator
-    @returns: a fourier sparse set function, the actual sparsity
+    """creates a random k-sparse set function
+
+    :param n: size of the ground set
+    :param k: desired sparsity
+    :param constructor: a Fourier Sparse SetFunction constructor
+    :param rand_sets: a random zero-one vector generator
+    :param rand_vals: a random Fourier coefficient generator
+    :returns: a fourier sparse set function, the actual sparsity
     """
     freq_coef_dict = dict()
     freqs = rand_sets((k, n))
@@ -712,6 +725,14 @@ def createRandomSparse(n, k, constructor,
     return constructor(freqs, coefs)
 
 def build_from_csv(path,model = None):
+    '''loads a setfunction from a csv file
+    
+    :param path: path to csv file
+    :type path: str
+    :param model: DSFT model to build (None to build set function)
+    :type model: str
+    :returns: SparseDSFTFunction or WrapSignal
+    '''
     df = pd.read_csv(path) 
     df_freqs = df.iloc[:,1:-1]
     df_coefs = df.iloc[:,-1:]

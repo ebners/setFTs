@@ -69,9 +69,16 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
-<span class="kn">from</span> <span class="nn">dsft</span> <span class="kn">import</span> <span class="n">setfunctions</span>
+<span class="kn">from</span> <span class="nn">setFTs</span> <span class="kn">import</span> <span class="n">setfunctions</span>
 
 <div class="viewcode-block" id="plot_freq_card"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_freq_card">[docs]</a><span class="k">def</span> <span class="nf">plot_freq_card</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span><span class="n">plot_type</span> <span class="o">=</span> <span class="s1">&#39;bar&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plot the number of frequencies per cardinality</span>
+<span class="sd">    </span>
+<span class="sd">    :param sf: SetFunction object</span>
+<span class="sd">    :type sf: setfunctions.SetFunction</span>
+<span class="sd">    :param plot_type: specifies plot type. Either &#39;bar&#39; or &#39;plot</span>
+<span class="sd">    :type plot_type: str</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">indicators</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">freqs</span>
     <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">indicators</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">freq_count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
@@ -90,6 +97,15 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="plot_freq_card_multi"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_freq_card_multi">[docs]</a><span class="k">def</span> <span class="nf">plot_freq_card_multi</span><span class="p">(</span><span class="n">sf_list</span><span class="p">,</span><span class="n">label_list</span><span class="p">,</span><span class="n">plot_type</span> <span class="o">=</span> <span class="s1">&#39;bar&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plot the number of frequencies per cardinality for multiple setfunctions</span>
+<span class="sd">    </span>
+<span class="sd">    :param sf_list: list of SetFunction objects</span>
+<span class="sd">    :type sf_list: List[setfunctions.SetFunctions]</span>
+<span class="sd">    :param label_list: list of labels for the setfunctions in corresponding order</span>
+<span class="sd">    :type  label_list: List[str]</span>
+<span class="sd">    :param plot_type: specifies plot type. Either &#39;bar&#39; or &#39;plot</span>
+<span class="sd">    :type plot_type: str</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">freq_count_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sf_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
         <span class="n">width</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">sf_list</span><span class="p">)</span>
@@ -119,6 +135,17 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="plot_spectral_energy"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_spectral_energy">[docs]</a><span class="k">def</span> <span class="nf">plot_spectral_energy</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span><span class="n">max_card</span><span class="p">,</span><span class="n">flag_rescale</span> <span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">plot_type</span> <span class="o">=</span> <span class="s1">&#39;plot&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plot the average coefficient for each cardinality</span>
+<span class="sd">    </span>
+<span class="sd">    :param sf: SetFunction object</span>
+<span class="sd">    :type sf: setfunctions.SetFunction</span>
+<span class="sd">    :param max_card: maximal cardinality to consider</span>
+<span class="sd">    :type max_card: int</span>
+<span class="sd">    :param flag_rescale: flag that enables normalization</span>
+<span class="sd">    :type flag_rescale: bool</span>
+<span class="sd">    :param plot_type: specifies plot type. Either &#39;bar&#39; or &#39;plot</span>
+<span class="sd">    :type plot_type: str</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">sf</span><span class="o">.</span><span class="n">freqs</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">spec_energy</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">spectral_energy</span><span class="p">(</span><span class="n">max_card</span><span class="p">,</span><span class="n">flag_rescale</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.pdf&#39;</span><span class="p">,</span><span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -135,6 +162,19 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="plot_spectral_energy_multi"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_spectral_energy_multi">[docs]</a><span class="k">def</span> <span class="nf">plot_spectral_energy_multi</span><span class="p">(</span><span class="n">sf_list</span><span class="p">,</span><span class="n">label_list</span><span class="p">,</span><span class="n">max_card</span><span class="p">,</span><span class="n">flag_rescale</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">plot_type</span> <span class="o">=</span> <span class="s1">&#39;plot&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plot the average coefficient for each cardinality for multiple set functions</span>
+<span class="sd">    </span>
+<span class="sd">    :param sf_list: list of SetFunction objects</span>
+<span class="sd">    :type sf_list: List[setfunctions.SetFunctions]</span>
+<span class="sd">    :param label_list: list of labels for the setfunctions in corresponding order</span>
+<span class="sd">    :type  label_list: List[str]</span>
+<span class="sd">    :param max_card: maximal cardinality to consider</span>
+<span class="sd">    :type max_card: int</span>
+<span class="sd">    :param flag_rescale: flag that enables normalization</span>
+<span class="sd">    :type flag_rescale: bool</span>
+<span class="sd">    :param plot_type: specifies plot type. Either &#39;bar&#39; or &#39;plot</span>
+<span class="sd">    :type plot_type: str</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">spect_list</span> <span class="o">=</span><span class="p">[]</span>
     <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sf_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
         <span class="n">width</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">sf_list</span><span class="p">)</span>
@@ -161,6 +201,15 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="plot_scatter"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_scatter">[docs]</a><span class="k">def</span> <span class="nf">plot_scatter</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span><span class="n">label</span><span class="p">,</span><span class="n">max_card</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plots the coefficients of a setfunction per cardinality as a scatterplot</span>
+<span class="sd">    </span>
+<span class="sd">    :param sf: SetFunction object</span>
+<span class="sd">    :type sf: setfunctions.SetFunction</span>
+<span class="sd">    :param label: name of the setfunction</span>
+<span class="sd">    :type label: str</span>
+<span class="sd">    :param max_card: maximal cardinality to consider</span>
+<span class="sd">    :type max_card: int</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="c1">#metric = lambda x: np.linalg.norm(x)**2</span>
     <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.pdf&#39;</span><span class="p">,</span><span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="c1">#coef_size = metric(sf.coefs)</span>
@@ -175,6 +224,17 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="plot_max_greedy"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_max_greedy">[docs]</a><span class="k">def</span> <span class="nf">plot_max_greedy</span><span class="p">(</span><span class="n">sf_list</span><span class="p">,</span><span class="n">label_list</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">max_card</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plots the result of the greedy maximization when restricted to each cardinality</span>
+<span class="sd">    </span>
+<span class="sd">    :param sf_list: list of SetFunction objects</span>
+<span class="sd">    :type sf_list: List[setfunctions.SetFunctions]</span>
+<span class="sd">    :param label_list: list of labels for the setfunctions in corresponding order</span>
+<span class="sd">    :type  label_list: List[str]</span>
+<span class="sd">    :param n: ground set size</span>
+<span class="sd">    :type n: int</span>
+<span class="sd">    :param max_card: maximal cardinality to consider</span>
+<span class="sd">    :type max_card: int</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">values_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">sf</span> <span class="ow">in</span> <span class="n">sf_list</span><span class="p">:</span>
         <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
@@ -197,6 +257,17 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="plot_min_greedy"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_min_greedy">[docs]</a><span class="k">def</span> <span class="nf">plot_min_greedy</span><span class="p">(</span><span class="n">sf_list</span><span class="p">,</span><span class="n">label_list</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">max_card</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plots the result of the greedy minimization when restricted to each cardinality</span>
+<span class="sd">    </span>
+<span class="sd">    :param sf_list: list of SetFunction objects</span>
+<span class="sd">    :type sf_list: List[setfunctions.SetFunctions]</span>
+<span class="sd">    :param label_list: list of labels for the setfunctions in corresponding order</span>
+<span class="sd">    :type  label_list: List[str]</span>
+<span class="sd">    :param n: ground set size</span>
+<span class="sd">    :type n: int</span>
+<span class="sd">    :param max_card: maximal cardinality to consider</span>
+<span class="sd">    :type max_card: int</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">values_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">sf</span> <span class="ow">in</span> <span class="n">sf_list</span><span class="p">:</span>
         <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
@@ -219,6 +290,15 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="plot_max_mip"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_max_mip">[docs]</a><span class="k">def</span> <span class="nf">plot_max_mip</span><span class="p">(</span><span class="n">ft_list</span><span class="p">,</span><span class="n">label_list</span><span class="p">,</span><span class="n">max_card</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plots the result of the MIP-based maximization when restricted to each cardinality</span>
+<span class="sd">    </span>
+<span class="sd">    :param ft_list: list of SetFunction objects</span>
+<span class="sd">    :type ft_list: List[setfunctions.SetFunctions]</span>
+<span class="sd">    :param label_list: list of labels for the setfunctions in corresponding order</span>
+<span class="sd">    :type  label_list: List[str]</span>
+<span class="sd">    :param max_card: maximal cardinality to consider</span>
+<span class="sd">    :type max_card: int</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">values_fts</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">ft</span> <span class="ow">in</span> <span class="n">ft_list</span><span class="p">:</span>
         <span class="n">values_ft</span> <span class="o">=</span> <span class="p">[]</span>
@@ -240,6 +320,15 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="plot_min_mip"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_min_mip">[docs]</a><span class="k">def</span> <span class="nf">plot_min_mip</span><span class="p">(</span><span class="n">ft_list</span><span class="p">,</span><span class="n">label_list</span><span class="p">,</span><span class="n">max_card</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plots the result of the MIP-based minimization when restricted to each cardinality</span>
+<span class="sd">    </span>
+<span class="sd">    :param ft_list: list of SetFunction objects</span>
+<span class="sd">    :type ft_list: List[setfunctions.SetFunctions]</span>
+<span class="sd">    :param label_list: list of labels for the setfunctions in corresponding order</span>
+<span class="sd">    :type  label_list: List[str]</span>
+<span class="sd">    :param max_card: maximal cardinality to consider</span>
+<span class="sd">    :type max_card: int</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">values_fts</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">ft</span> <span class="ow">in</span> <span class="n">ft_list</span><span class="p">:</span>
         <span class="n">values_ft</span> <span class="o">=</span> <span class="p">[]</span>
@@ -261,6 +350,17 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
     
 <div class="viewcode-block" id="plot_reconstruction_error"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_reconstruction_error">[docs]</a><span class="k">def</span> <span class="nf">plot_reconstruction_error</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">err_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;rel&#39;</span><span class="p">],</span><span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span><span class="n">flag_general</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plots the reconstruction error when approximated with the sparse algorithm with different eps values</span>
+<span class="sd">    </span>
+<span class="sd">    :param sf: SetFunction object</span>
+<span class="sd">    :type sf: setfunctions.SetFunction</span>
+<span class="sd">    :param err_types: list of error calculations to perform</span>
+<span class="sd">    :type err_types: List[str]</span>
+<span class="sd">    :param model: Fourier transformation base to consider</span>
+<span class="sd">    :type model: int</span>
+<span class="sd">    :param flag_general: enables random one hop filtering</span>
+<span class="sd">    :type flag_general: bool</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">num_errors</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">err_types</span><span class="p">)</span>
     <span class="n">error_values</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_errors</span><span class="p">)]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">9</span><span class="p">):</span>
@@ -289,6 +389,21 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="plot_reconstruction_error_biggest_coefs"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_reconstruction_error_biggest_coefs">[docs]</a><span class="k">def</span> <span class="nf">plot_reconstruction_error_biggest_coefs</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">max_sparsity</span><span class="p">,</span><span class="n">interval</span><span class="p">,</span><span class="n">err_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;rel&#39;</span><span class="p">],</span><span class="n">model</span> <span class="o">=</span><span class="s1">&#39;3&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plots the reconstruction error when approximated with the sparse algorithm constrained to only the biggest coefs</span>
+<span class="sd">    </span>
+<span class="sd">    :param sf: SetFunction object</span>
+<span class="sd">    :type sf: setfunctions.SetFunction</span>
+<span class="sd">    :param n: ground set size</span>
+<span class="sd">    :type n: int</span>
+<span class="sd">    :param max_sparsity: maximal sparsity to consider</span>
+<span class="sd">    :type max_sparsity: int</span>
+<span class="sd">    :param interval: increment of sparsity</span>
+<span class="sd">    :type interval: int</span>
+<span class="sd">    :param err_types: list of error calculations to perform</span>
+<span class="sd">    :type err_types: List[str]</span>
+<span class="sd">    :param model: Fourier transformation base to consider</span>
+<span class="sd">    :type model: int</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">num_errors</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">err_types</span><span class="p">)</span>
     <span class="n">error_values</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_errors</span><span class="p">)]</span>
     <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">:</span>
@@ -316,6 +431,15 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
         
 <div class="viewcode-block" id="plot_minimization_found"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_minimization_found">[docs]</a><span class="k">def</span> <span class="nf">plot_minimization_found</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span><span class="n">greedy</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plots the minimal value found when performing a minimization algorithm on an eps sparse approximation</span>
+<span class="sd">    </span>
+<span class="sd">    :param sf: SetFunction object</span>
+<span class="sd">    :type sf: setfunctions.SetFunction    </span>
+<span class="sd">    :param model: Fourier transformation base to consider</span>
+<span class="sd">    :type model: int</span>
+<span class="sd">    :param greedy: flag indicating whether greedy (True) or MIP based algorithm (False) should be used </span>
+<span class="sd">    :type greedy: bool</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">minvals</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">9</span><span class="p">):</span>
         <span class="n">eps_i</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;1e-</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">i</span><span class="p">)</span>
@@ -341,6 +465,19 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
         
 <div class="viewcode-block" id="plot_minimization_found_biggest_coefs"><a class="viewcode-back" href="../../setFTs.html#setFTs.plotting.plot_minimization_found_biggest_coefs">[docs]</a><span class="k">def</span> <span class="nf">plot_minimization_found_biggest_coefs</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span><span class="n">max_sparsity</span><span class="p">,</span><span class="n">interval</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span><span class="n">greedy</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;plots the minimal value found when performing a minimization algorithm constrained to its biggest coefficients</span>
+<span class="sd">    </span>
+<span class="sd">    :param sf: SetFunction object</span>
+<span class="sd">    :type sf: setfunctions.SetFunction</span>
+<span class="sd">    :param max_sparsity: maximal sparsity to consider</span>
+<span class="sd">    :type max_sparsity: int</span>
+<span class="sd">    :param interval: increment of sparsity</span>
+<span class="sd">    :type interval: int</span>
+<span class="sd">     :param model: Fourier transformation base to consider</span>
+<span class="sd">    :type model: int</span>
+<span class="sd">    :param greedy: flag indicating whether greedy (True) or MIP based algorithm (False) should be used </span>
+<span class="sd">    :type greedy: bool</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">minvals</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">:</span>
         <span class="n">est</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">transform_sparse</span><span class="p">(</span><span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;3&#39;</span><span class="p">)</span>

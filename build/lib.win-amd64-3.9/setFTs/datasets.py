@@ -3,10 +3,8 @@ import functools
 import pathlib
 import csv
 
-import ck.kernel as ck
-
 import numpy as np
-from dsft import setfunctions
+from setFTs import setfunctions
 
 
 

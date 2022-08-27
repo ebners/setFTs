@@ -3,7 +3,7 @@ import functools
 import pathlib
 import csv
 
-#import numpy as np
+import numpy as np
 from setFTs import setfunctions
 
 

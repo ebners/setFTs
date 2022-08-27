@@ -1,4 +1,4 @@
-import numpy as np
+#import numpy as np
 
 #returns all indicator vectors of size 'ground_set_size' as a numpy array
 def get_indicator_set(ground_set_size,reverse=False):
