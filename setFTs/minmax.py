@@ -6,8 +6,8 @@ Created on Mon May 23 17:24:12 2022
 @author: chrisw
 """
 
-from pyscipopt import Model, quicksum, multidict
-import numpy as np
+#from pyscipopt import Model, quicksum, multidict
+#import numpy as np
 
 def polysparse_setfunction_minmax_model(freqs, coefs, C=1000., cardinality_constraint = None,maximize = True):
     """

@@ -1,9 +1,9 @@
 from typing import List
 from math import log2
 
-import numpy as np
-import scipy
-import scipy.linalg
+#import numpy as np
+#import scipy
+#import scipy.linalg
 
 from setFTs import setfunctions as sf
 from setFTs import utils 
