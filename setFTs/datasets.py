@@ -4,7 +4,7 @@ import pathlib
 import csv
 
 import numpy as np
-from dsft import setfunctions
+from setFTs import setfunctions
 
 
 

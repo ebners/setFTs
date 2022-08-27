@@ -12,10 +12,10 @@ import numpy.typing as npt
 import pandas as pd
 
 
-from dsft import minmax
-from dsft import fast
-from dsft.utils import get_indicator_set,int2indicator
-from dsft import transformations
+from setFTs import minmax
+from setFTs import fast
+from setFTs.utils import get_indicator_set,int2indicator
+from setFTs import transformations
 
 
 class SetFunction(ABC): 
