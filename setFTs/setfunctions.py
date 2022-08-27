@@ -32,7 +32,7 @@ class SetFunction(ABC):
         pass
     
     def gains(self, n : int , S0,maximize = True):
-        """ Helper function for greedy min/max. Finds element that will increase the set function value the most, if added to an input subset
+        """ Helper function for greedy min/max. Finds element that will increase the set function value the most, if added to an input subset.
 
         :param n:groundset size
         :type n: int
