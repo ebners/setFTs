@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>setFTs.transformations &mdash; setFTs 0.0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> setFTs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">setFTs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">setFTs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>setFTs.transformations</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for setFTs.transformations</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log2</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">scipy.linalg</span>
+
+<span class="kn">from</span> <span class="nn">dsft</span> <span class="kn">import</span> <span class="n">setfunctions</span> <span class="k">as</span> <span class="n">sf</span>
+<span class="kn">from</span> <span class="nn">dsft</span> <span class="kn">import</span> <span class="n">utils</span> 
+<span class="kn">from</span> <span class="nn">dsft</span> <span class="kn">import</span> <span class="n">fast</span> 
+
+<div class="viewcode-block" id="FastSFT"><a class="viewcode-back" href="../../setFTs.html#setFTs.transformations.FastSFT">[docs]</a><span class="k">class</span> <span class="nc">FastSFT</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model</span> <span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        @param model: a string representing which model to use. </span>
+<span class="sd">        Can be either 3, 3SI, 4 or WHT</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+<div class="viewcode-block" id="FastSFT.transform"><a class="viewcode-back" href="../../setFTs.html#setFTs.transformations.FastSFT.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">signal</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        @param signal: complete list outputs of a setfunction in lexicographical ordering</span>
+<span class="sd">        @returns a dsft.setfunction object of the chosen model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">fast</span><span class="o">.</span><span class="n">fdsft3</span><span class="p">(</span><span class="n">signal</span><span class="p">))</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_indicator_set</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">))))</span>
+            <span class="k">return</span> <span class="n">sf</span><span class="o">.</span><span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span><span class="n">coefs</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">)</span>
+        <span class="k">elif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3SI&#39;</span><span class="p">):</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">fast</span><span class="o">.</span><span class="n">fdsft3_selfInverse</span><span class="p">(</span><span class="n">signal</span><span class="p">))</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_indicator_set</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">))))</span>
+            <span class="k">return</span> <span class="n">sf</span><span class="o">.</span><span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span><span class="n">coefs</span><span class="p">,</span><span class="s1">&#39;3SI&#39;</span><span class="p">)</span>
+        <span class="k">elif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">):</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">fast</span><span class="o">.</span><span class="n">fdsft4</span><span class="p">(</span><span class="n">signal</span><span class="p">))</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_indicator_set</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">))))</span>
+            <span class="k">return</span> <span class="n">sf</span><span class="o">.</span><span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span><span class="n">coefs</span><span class="p">,</span><span class="s1">&#39;4&#39;</span><span class="p">)</span>
+        <span class="k">elif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;WHT&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;5&#39;</span><span class="p">):</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">fast</span><span class="o">.</span><span class="n">fwht</span><span class="p">(</span><span class="n">signal</span><span class="p">))</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_indicator_set</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">log2</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">))))</span>
+            <span class="k">return</span> <span class="n">sf</span><span class="o">.</span><span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span><span class="n">coefs</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="FastSFT.inverse"><a class="viewcode-back" href="../../setFTs.html#setFTs.transformations.FastSFT.inverse">[docs]</a>    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">s_hat</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        @param s_hat: a sparse setfunction representation (SparseDSFT3Function | SparseDSFT4Function | SparseWHTFunction)</span>
+<span class="sd">        @returns : complete list of integer outputs of the original setfunction in lexicographical ordering</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">fast</span><span class="o">.</span><span class="n">fidsft3</span><span class="p">(</span><span class="n">s_hat</span><span class="o">.</span><span class="n">coefs</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">fast</span><span class="o">.</span><span class="n">fidsft4</span><span class="p">(</span><span class="n">s_hat</span><span class="o">.</span><span class="n">coefs</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;WHT&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;5&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">fast</span><span class="o">.</span><span class="n">fiwht</span><span class="p">(</span><span class="n">s_hat</span><span class="o">.</span><span class="n">coefs</span><span class="p">)</span></div></div>
+       
+<div class="viewcode-block" id="SparseSFT"><a class="viewcode-back" href="../../setFTs.html#setFTs.transformations.SparseSFT">[docs]</a><span class="k">class</span> <span class="nc">SparseSFT</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @author: Enrico Brusoni</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span> <span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">flag_print</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">k_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flag_general</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;3&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            @param n: ground set size</span>
+<span class="sd">            @param eps: |x| &lt; eps is treated as zero</span>
+<span class="sd">            @param flag_print: printing flag</span>
+<span class="sd">            @param k_max: the maximum amount of frequencies maintained in all steps but the last</span>
+<span class="sd">            @param flag_general: this toggles the filtering by a random one hop filter and is </span>
+<span class="sd">            required to handle arbitrary/adversary Fourier coefficients.</span>
+<span class="sd">            @param model: model for Fourier transform.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_max</span> <span class="o">=</span> <span class="n">k_max</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flag_print</span> <span class="o">=</span> <span class="n">flag_print</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flag_general</span> <span class="o">=</span> <span class="n">flag_general</span>
+        <span class="k">if</span> <span class="n">flag_general</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+<div class="viewcode-block" id="SparseSFT.solve_subproblem"><a class="viewcode-back" href="../../setFTs.html#setFTs.transformations.SparseSFT.solve_subproblem">[docs]</a>    <span class="k">def</span> <span class="nf">solve_subproblem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">keys_old</span><span class="p">,</span> <span class="n">coefs_old</span><span class="p">,</span> <span class="n">measurements_previous</span><span class="p">,</span> <span class="n">M_previous</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+        <span class="n">eps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">keys_sorted</span> <span class="o">=</span> <span class="n">keys_old</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cards</span> <span class="o">=</span> <span class="n">keys_old</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">mags</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs_old</span><span class="p">)</span>
+            <span class="n">criteria</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">keys_old</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;cards&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;i4&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;coefs&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;f8&#39;</span><span class="p">)])</span>
+            <span class="n">criteria</span><span class="p">[</span><span class="s1">&#39;cards&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cards</span>
+            <span class="n">criteria</span><span class="p">[</span><span class="s1">&#39;coefs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mags</span>
+            <span class="n">idx_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">criteria</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cards&#39;</span><span class="p">,</span> <span class="s1">&#39;coefs&#39;</span><span class="p">))[:</span><span class="bp">self</span><span class="o">.</span><span class="n">k_max</span><span class="p">]</span>
+            <span class="n">keys_sorted</span> <span class="o">=</span> <span class="n">keys_old</span><span class="p">[</span><span class="n">idx_order</span><span class="p">]</span>
+
+            <span class="n">M_previous</span> <span class="o">=</span> <span class="n">M_previous</span><span class="p">[</span><span class="n">idx_order</span><span class="p">][:,</span> <span class="n">idx_order</span><span class="p">]</span>
+            <span class="n">measurements_previous</span> <span class="o">=</span> <span class="n">measurements_previous</span><span class="p">[</span><span class="n">idx_order</span><span class="p">]</span>
+
+        <span class="n">n1</span> <span class="o">=</span> <span class="n">keys_sorted</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">measurement_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">keys_sorted</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span> <span class="ow">or</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+            <span class="n">measurement_positions</span><span class="p">[:,</span> <span class="p">:</span><span class="n">n1</span><span class="p">]</span> <span class="o">=</span> <span class="n">keys_sorted</span>
+            <span class="n">measurement_positions</span><span class="p">[:,</span> <span class="n">n1</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">n1</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">):</span>
+            <span class="n">measurement_positions</span><span class="p">[:,</span> <span class="p">:</span><span class="n">n1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">keys_sorted</span>
+            <span class="n">measurement_positions</span><span class="p">[:,</span> <span class="n">n1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">measurements_new</span> <span class="o">=</span> <span class="n">s</span><span class="p">(</span><span class="n">measurement_positions</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span><span class="p">):</span>
+            <span class="n">rhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">measurements_new</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> 
+                                 <span class="mf">2.</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">measurements_previous</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">measurements_new</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]],</span>
+                                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+
+            <span class="n">rhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">measurements_new</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                                 <span class="n">measurements_new</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">-</span> <span class="n">measurements_previous</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]],</span>
+                                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">):</span>
+            <span class="n">rhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">measurements_new</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                                 <span class="n">measurements_previous</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">-</span> <span class="n">measurements_new</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]],</span>
+                                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve_triangular</span><span class="p">(</span><span class="n">M_previous</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">n_queries</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">measurements_new</span><span class="p">)</span>
+        <span class="c1">#support_first = support_second = np.where(np.abs(coefs[:,0]) + np.abs(coefs[:,1]) &gt; 2*eps)[0]</span>
+        <span class="c1"># support_first = np.where(np.abs(coefs[:, 0]) &gt; eps)[0]</span>
+        <span class="c1">#support_second = np.where(np.abs(coefs[:, 1]) &gt; eps)[0]</span>
+        <span class="n">support_first</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">eps</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">support_second</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">eps</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">dim1</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">support_first</span><span class="p">)</span>
+        <span class="n">dim2</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">support_second</span><span class="p">)</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">support_first</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">support_second</span><span class="p">)</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">longfloat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span><span class="p">):</span>
+            <span class="n">M</span><span class="p">[:</span><span class="n">dim1</span><span class="p">,</span> <span class="p">:</span><span class="n">dim1</span><span class="p">]</span> <span class="o">=</span> <span class="n">M_previous</span><span class="p">[</span><span class="n">support_first</span><span class="p">][:,</span> <span class="n">support_first</span><span class="p">]</span>
+            <span class="n">M</span><span class="p">[</span><span class="n">dim1</span><span class="p">:,</span> <span class="p">:</span><span class="n">dim1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">M_previous</span><span class="p">[</span><span class="n">support_second</span><span class="p">][:,</span> <span class="n">support_first</span><span class="p">]</span>
+            <span class="n">M</span><span class="p">[</span><span class="n">dim1</span><span class="p">:,</span> <span class="n">dim1</span><span class="p">:]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">M_previous</span><span class="p">[</span><span class="n">support_second</span><span class="p">][:,</span> <span class="n">support_second</span><span class="p">]</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+            <span class="n">M</span><span class="p">[:</span><span class="n">dim1</span><span class="p">,</span> <span class="p">:</span><span class="n">dim1</span><span class="p">]</span> <span class="o">=</span> <span class="n">M_previous</span><span class="p">[</span><span class="n">support_first</span><span class="p">][:,</span> <span class="n">support_first</span><span class="p">]</span>
+            <span class="n">M</span><span class="p">[</span><span class="n">dim1</span><span class="p">:,</span> <span class="p">:</span><span class="n">dim1</span><span class="p">]</span> <span class="o">=</span> <span class="n">M_previous</span><span class="p">[</span><span class="n">support_second</span><span class="p">][:,</span> <span class="n">support_first</span><span class="p">]</span>
+            <span class="n">M</span><span class="p">[</span><span class="n">dim1</span><span class="p">:,</span> <span class="n">dim1</span><span class="p">:]</span> <span class="o">=</span> <span class="o">-</span><span class="n">M_previous</span><span class="p">[</span><span class="n">support_second</span><span class="p">][:,</span> <span class="n">support_second</span><span class="p">]</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">):</span>
+            <span class="n">M</span><span class="p">[:</span><span class="n">dim1</span><span class="p">,</span> <span class="p">:</span><span class="n">dim1</span><span class="p">]</span> <span class="o">=</span> <span class="n">M_previous</span><span class="p">[</span><span class="n">support_first</span><span class="p">][:,</span> <span class="n">support_first</span><span class="p">]</span>
+            <span class="n">M</span><span class="p">[</span><span class="n">dim1</span><span class="p">:,</span> <span class="p">:</span><span class="n">dim1</span><span class="p">]</span> <span class="o">=</span> <span class="n">M_previous</span><span class="p">[</span><span class="n">support_second</span><span class="p">][:,</span> <span class="n">support_first</span><span class="p">]</span>
+            <span class="n">M</span><span class="p">[</span><span class="n">dim1</span><span class="p">:,</span> <span class="n">dim1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">M_previous</span><span class="p">[</span><span class="n">support_second</span><span class="p">][:,</span> <span class="n">support_second</span><span class="p">]</span>
+        <span class="n">measurements</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">measurements_new</span><span class="p">[</span><span class="n">support_first</span><span class="p">],</span> <span class="n">measurements_previous</span><span class="p">[</span><span class="n">support_second</span><span class="p">]])</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span> <span class="ow">or</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+            <span class="n">keys_first</span> <span class="o">=</span> <span class="n">measurement_positions</span><span class="p">[</span><span class="n">support_first</span><span class="p">][:,</span> <span class="p">:</span><span class="n">n1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">keys_second</span> <span class="o">=</span> <span class="n">measurement_positions</span><span class="p">[</span><span class="n">support_second</span><span class="p">][:,</span> <span class="p">:</span><span class="n">n1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">):</span>
+            <span class="n">keys_first</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">measurement_positions</span><span class="p">[</span><span class="n">support_first</span><span class="p">][:,</span> <span class="p">:</span><span class="n">n1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">keys_second</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">measurement_positions</span><span class="p">[</span><span class="n">support_second</span><span class="p">][:,</span> <span class="p">:</span><span class="n">n1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">keys_second</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">keys_first</span><span class="p">,</span> <span class="n">keys_second</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">fourier_coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">coefs</span><span class="p">[</span><span class="n">support_first</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coefs</span><span class="p">[</span><span class="n">support_second</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">fourier_coefs</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">measurements</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">n_queries</span></div>
+
+<div class="viewcode-block" id="SparseSFT.transform"><a class="viewcode-back" href="../../setFTs.html#setFTs.transformations.SparseSFT.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X0</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flag_general</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">DSFT4OneHop</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">X0</span><span class="p">,</span><span class="n">model</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hs</span> <span class="o">=</span> <span class="n">s</span>
+            <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">DSFT3OneHop</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">X0</span><span class="p">,</span><span class="n">model</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hs</span> <span class="o">=</span> <span class="n">s</span>
+            <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;One-Hop Filtering for W3 not implemented. Proceding with unfiltered function&#39;</span><span class="p">)</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">X0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">X0</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span> <span class="ow">or</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+            <span class="n">sN</span> <span class="o">=</span> <span class="n">s</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">):</span>
+            <span class="n">sN</span> <span class="o">=</span> <span class="n">s</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">fourier_coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">*</span><span class="n">sN</span>
+        <span class="n">measurements</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">*</span><span class="n">sN</span>
+        <span class="n">partition_dict</span> <span class="o">=</span> <span class="p">{():</span><span class="n">sN</span><span class="p">}</span>
+            
+        <span class="n">n_queries_total</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">partition_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+                <span class="n">fourier_coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">fourier_coefs</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">measurements</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">n_queries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve_subproblem</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">fourier_coefs</span><span class="p">,</span> <span class="n">measurements</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">partition_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flag_print</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;iteration </span><span class="si">%d</span><span class="s1">: queries </span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_queries</span><span class="p">))</span>
+            <span class="n">n_queries_total</span> <span class="o">+=</span> <span class="n">n_queries</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flag_print</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;total queries: </span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">n_queries_total</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">):</span>
+            <span class="n">estimate</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">fourier_coefs</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;3SI&#39;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span><span class="p">):</span>
+            <span class="n">estimate</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">fourier_coefs</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;W3&#39;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">):</span>
+            <span class="n">estimate</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">SparseDSFTFunction</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">fourier_coefs</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;4&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flag_general</span><span class="p">:</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;W3&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">estimate</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">estimate</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">convertCoefs</span><span class="p">(</span><span class="n">estimate</span><span class="p">)</span> 
+        <span class="k">return</span> <span class="n">estimate</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Ebner Simon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
