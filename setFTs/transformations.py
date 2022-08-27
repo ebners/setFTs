@@ -7,7 +7,7 @@ from math import log2
 
 from setFTs import setfunctions as sf
 from setFTs import utils 
-from setFTs import fast 
+#from setFTs import fast 
 
 class FastSFT:
     def __init__(self,model : str = '3'):
