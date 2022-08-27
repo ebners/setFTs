@@ -13,7 +13,6 @@ from typing import Callable, List
 
 
 from setFTs import minmax
-from setFTs import fast
 from setFTs.utils import get_indicator_set,int2indicator
 from setFTs import transformations
 
