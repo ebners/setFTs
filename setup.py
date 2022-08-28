@@ -126,13 +126,13 @@ from subprocess import CalledProcessError
 
 kwargs = dict(
     name='setFTs',
-    version='0.0.1.8',
+    version='0.0.1.0',
     author='Simon Ebner',
     author_email='ebners@ethz.ch',
     description='A collection of Discrete Set Fourier Transformation Algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires = ['numpy','scipy','matplotlib','pySCIPOpt','pandas'],
+    install_requires = ['numpy >= 1.21.5','scipy >= 1.7.3','matplotlib >= 3.5.1','pySCIPOpt >= 4.2.0','pandas >= 1.4.2'],
     ext_modules=[CMakeExtension('setFTs.fast')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
