@@ -16,16 +16,19 @@ or in the Documentation_setFTs.pdf provided in the repositors
 ## 2 Requirements
 setFTs uses the python library pySCIPOpt for the implementation of the MIP-based minimization algorithm. 
 pySCIPOpt requires a working installation of the SCIP Optimization Suite. The creators of pySCIPOpt recommend using conda as it installs SCIP automatically. And allows the installation of pySCIPOpt in one command:
-
+'''
 conda install --channel conda-forge pyscipopt
-
+'''
 More information about installing pySCIPOpt can be found at: https://github.com/scipopt/PySCIPOpt/blob/master/INSTALL.md
 
 ## 3 Installation
 The installation of our package works over pypi and therefore a working installation of pip is needed. The pip command to install setFTs is the following:
+'''
 pip install setFTs
-
+'''
 ## References
+[1]
+'''
 @article{Discrete_Signal_Proc, 
      title={Discrete signal processing with set functions},
      volume={69},
@@ -35,7 +38,9 @@ pip install setFTs
      year={2021}, 
      pages={1039–1053}
  } 
- 
+ '''
+ [2]
+ '''
  @article{Sparse,
     author    = {Chris Wendler and
                Andisheh Amrollahi and
@@ -47,16 +52,15 @@ pip install setFTs
     volume    = {abs/2010.00439},
     year      = {2020},
     url       = {https://arxiv.org/abs/2010.00439},
-    eprinttype = {arXiv},
-    eprint    = {2010.00439},
-    timestamp = {Thu, 14 Oct 2021 09:16:32 +0200},
-    biburl    = {https://dblp.org/rec/journals/corr/abs-2010-00439.bib},
-    bibsource = {dblp computer science bibliography, https://dblp.org}
 }
-
+'''
+[3]
+'''
 @article{MIPS,
     author={Weissteiner,Jakob and Wendler, Chris and Seuken, Sven and Lubin,Ben and Püschel, Markus},
     title={Fourier analysis-based iterative combinatorial auctions},
     DOI={10.24963/ijcai.2022/78},
     journal={Proceedings of the Thirty-First International Joint Conference on Artificial Intelligence},
-    year={2022}} 
+    year={2022}
+    } 
+'''
