@@ -470,7 +470,7 @@ class SparseDSFTFunction(SetFunction):
         est = self
         if self.model == '3SI':
             new_coefs = (-1)**self.freq_sums*self.coefs
-            est = SparseDSFTFunction(self.freqs,new_coefs) 
+            est = SparseDSFTFunction(self.freqs,new_coefs,model = self.model) 
             minvec, minval = minmax.minmax_dsft3(est,C,cardinality_constraint,maximize = True)
         if self.model == '3' or self.model == 'W3':
             minvec, minval = minmax.minmax_dsft3(est,C,cardinality_constraint,maximize = True)

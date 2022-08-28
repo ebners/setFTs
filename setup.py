@@ -7,6 +7,12 @@ from xml.etree.ElementInclude import include
 from setuptools import Extension, setup
 import setuptools
 from setuptools.command.build_ext import build_ext
+import pathlib
+
+here = pathlib.Path(__file__).parent.resolve()
+
+
+long_description = (here / "README.md").read_text(encoding="utf-8")
 
 # Convert distutils Windows platform specifiers to CMake -A arguments
 PLAT_TO_CMAKE = {
@@ -120,11 +126,12 @@ from subprocess import CalledProcessError
 
 kwargs = dict(
     name='setFTs',
-    version='0.0.1.2',
+    version='0.0.1.8',
     author='Simon Ebner',
     author_email='ebners@ethz.ch',
     description='A collection of Discrete Set Fourier Transformation Algorithms',
-    long_description='',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     install_requires = ['numpy','scipy','matplotlib','pySCIPOpt','pandas'],
     ext_modules=[CMakeExtension('setFTs.fast')],
     cmdclass=dict(build_ext=CMakeBuild),

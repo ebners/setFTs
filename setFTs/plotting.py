@@ -25,8 +25,8 @@ def plot_freq_card(sf,plot_type = 'bar'):
             plt.bar(np.arange(0, n+1), freq_count)
         elif(plot_type == 'plot'):
             plt.plot(np.arange(0, n+1), freq_count)    
-        plt.xlabel("Set cardinality")
-        plt.ylabel("Frequency count")
+        plt.xlabel("Set cardinality", fontsize = 12)
+        plt.ylabel("Frequency count", fontsize = 12)
         plt.show()
         plt.savefig(f.name,format='pdf')
         plt.close()
@@ -63,8 +63,8 @@ def plot_freq_card_multi(sf_list,label_list,plot_type = 'bar'):
                 plt.plot(np.arange(0, n+1), freq_count_list[i],label = label_list[i]) 
             offset += width 
         plt.legend()
-        plt.xlabel("Set cardinality")
-        plt.ylabel("Frequency count")
+        plt.xlabel("Set cardinality", fontsize = 12)
+        plt.ylabel("Frequency count", fontsize = 12)
         plt.show()
         plt.savefig(f.name,format='pdf')
         plt.close()
@@ -90,8 +90,8 @@ def plot_spectral_energy(sf,max_card,flag_rescale =True,plot_type = 'plot'):
             plt.plot(np.arange(0, n+1), spec_energy)   
         plt.bar(np.arange(0, n+1), spec_energy)
         plt.legend()
-        plt.xlabel("Set cardinality")
-        plt.ylabel("Spectral Energy")
+        plt.xlabel("Set cardinality", fontsize = 12)
+        plt.ylabel("Spectral Energy", fontsize = 12)
         plt.show()
         plt.savefig(f.name,format='pdf')
         plt.close()
@@ -127,8 +127,8 @@ def plot_spectral_energy_multi(sf_list,label_list,max_card,flag_rescale = True, 
                 plt.plot(np.arange(0, n+1), spect_list[i],label = label_list[i])
             offset += width
         plt.legend()
-        plt.xlabel('Cardinality of Frequency')
-        plt.ylabel('Avg. Coefficient')
+        plt.xlabel('Cardinality of Frequency', fontsize = 12)
+        plt.ylabel('Avg. Coefficient', fontsize = 12)
         plt.xlim(0, max_card)
         plt.xticks(np.arange(0,max_card+1))
         plt.savefig(f.name, format='pdf')
@@ -150,8 +150,8 @@ def plot_scatter(sf,label,max_card):
         #coef_size = metric(sf.coefs)
         cards = sf.freqs.sum(axis =1)
         plt.scatter(cards,sf.coefs,label = label)
-        plt.xlabel('Cardinality of Frequency')
-        plt.ylabel('Coefficient Value')
+        plt.xlabel('Cardinality of Frequency', fontsize = 12)
+        plt.ylabel('Coefficient Value', fontsize = 12)
         plt.xlim(0, max_card)
         plt.xticks(np.arange(0,max_card+1))
         plt.savefig(f.name, format='pdf')
@@ -182,8 +182,8 @@ def plot_max_greedy(sf_list,label_list,n,max_card):
         for i in range(len(sf_list)):
             plt.plot(values_list[i],label = label_list[i])
         plt.legend()
-        plt.xlabel('cardinality constraint')
-        plt.ylabel('maximal Value')
+        plt.xlabel('cardinality constraint', fontsize = 12)
+        plt.ylabel('maximal Value', fontsize = 12)
         plt.xlim(0, max_card)
         plt.xticks(np.arange(0,max_card+1))
         plt.ylim(bottom=0)
@@ -215,8 +215,8 @@ def plot_min_greedy(sf_list,label_list,n,max_card):
         for i in range(len(sf_list)):
             plt.plot(values_list[i],label = label_list[i])
         plt.legend()
-        plt.xlabel('cardinality constraint')
-        plt.ylabel('minimal Value')
+        plt.xlabel('cardinality constraint', fontsize = 12)
+        plt.ylabel('minimal Value', fontsize = 12)
         plt.xlim(0, max_card)
         plt.xticks(np.arange(0,max_card+1))
         plt.ylim(bottom=0)
@@ -245,8 +245,8 @@ def plot_max_mip(ft_list,label_list,max_card):
         for i in range(len(values_fts)):
             plt.plot(values_fts[i],label=label_list[i])
         plt.legend()
-        plt.xlabel('cardinality constraint')
-        plt.ylabel('maximal value')
+        plt.xlabel('cardinality constraint', fontsize = 12)
+        plt.ylabel('maximal value', fontsize = 12)
         plt.xlim(0, max_card)
         plt.xticks(np.arange(0,max_card+1))
         plt.ylim(bottom=0)
@@ -275,8 +275,8 @@ def plot_min_mip(ft_list,label_list,max_card):
         for i in range(len(values_fts)):
             plt.plot(values_fts[i],label=label_list[i])
         plt.legend()
-        plt.xlabel('cardinality constraint')
-        plt.ylabel('minimal value')
+        plt.xlabel('cardinality constraint', fontsize = 12)
+        plt.ylabel('minimal value', fontsize = 12)
         plt.xlim(0, max_card)
         plt.xticks(np.arange(0,max_card+1))
         plt.ylim(bottom=0)
@@ -315,15 +315,14 @@ def plot_reconstruction_error(sf,n,err_types = ['rel'],model = '3',flag_general 
             plt.subplot(1,num_errors,i+1)
             plt.plot(np.arange(2,9),error_values[i],label = err_types[i])
             plt.legend()
-            plt.xlabel('eps =1e-i')
-            plt.ylabel('error')
+            plt.xlabel('eps =1e-i', fontsize = 12)
+            plt.ylabel('error', fontsize = 12)
             plt.xlim(2, 8)
-            #plt.xticks(np.arange(0,max_sparsity,interval))
         plt.savefig(f.name, format='pdf')
         plt.show()
         plt.close()
 
-def plot_reconstruction_error_biggest_coefs(sf,n,max_sparsity,interval,err_types = ['rel'],model ='3'):
+def plot_reconstruction_error_biggest_coefs(sf,n,max_sparsity,interval,err_types = ['rel'],model ='3',flag_general = False):
     '''plots the reconstruction error when approximated with the sparse algorithm constrained to only the biggest coefs
     
     :param sf: SetFunction object
@@ -342,11 +341,11 @@ def plot_reconstruction_error_biggest_coefs(sf,n,max_sparsity,interval,err_types
     num_errors = len(err_types)
     error_values = [[] for _ in range(num_errors)]
     if model == '3':
-            est = sf.transform_sparse(model = '3')
+            est = sf.transform_sparse(model = '3',flag_general = flag_general)
     if model == 'W3':
-            est = sf.transform_sparse(model = 'W3')
+            est = sf.transform_sparse(model = 'W3',flag_general = flag_general)
     if model == '4':
-            est = sf.transform_sparse(model = '4')
+            est = sf.transform_sparse(model = '4',flag_general = flag_general)
     for i in range(1,max_sparsity,interval):
         est_i = est.force_k_sparse(i)
         errors = setfunctions.eval_sf(sf,est_i,n,n_samples = 100,err_types = err_types)
@@ -357,15 +356,14 @@ def plot_reconstruction_error_biggest_coefs(sf,n,max_sparsity,interval,err_types
             plt.subplot(1,num_errors,i+1)
             plt.plot(np.arange(1,max_sparsity,interval),error_values[i],label = err_types[i])
             plt.legend()
-            plt.xlabel('k-sparsity')
-            plt.ylabel('error')
+            plt.xlabel('k-sparsity', fontsize = 12)
+            plt.ylabel('error', fontsize = 12)
             plt.xlim(0, max_sparsity)
-            #plt.xticks(np.arange(0,max_sparsity,interval))
         plt.savefig(f.name, format='pdf')
         plt.show()
         plt.close()
         
-def plot_minimization_found(sf,model = '3',greedy = False):
+def plot_minimization_found(sf,model = '3',greedy = False,flag_general = False):
     '''plots the minimal value found when performing a minimization algorithm on an eps sparse approximation
     
     :param sf: SetFunction object
@@ -379,11 +377,11 @@ def plot_minimization_found(sf,model = '3',greedy = False):
     for i in range(2,9):
         eps_i = float("1e-%d" %i)
         if model == '3':
-            est = sf.transform_sparse(model = '3',eps =eps_i)
+            est = sf.transform_sparse(model = '3',eps =eps_i,flag_general = flag_general)
         if model == 'W3':
-            est = sf.transform_sparse(model = 'W3',eps = eps_i)
+            est = sf.transform_sparse(model = 'W3',eps = eps_i,flag_general = flag_general)
         if model == '4':
-            est = sf.transform_sparse(model = '4',eps = eps_i)
+            est = sf.transform_sparse(model = '4',eps = eps_i,flag_general = flag_general)
         if(greedy):
             minopt,_ = est.minimize_greedy()
         else:
@@ -393,13 +391,13 @@ def plot_minimization_found(sf,model = '3',greedy = False):
     with NamedTemporaryFile(suffix='.pdf',delete=False) as f:
         plt.plot(np.arange(2,9),minvals,label = '')
         plt.legend()
-        plt.xlabel('eps =1e-i')
-        plt.ylabel('minimization_value')
+        plt.xlabel('eps =1e-i', fontsize = 12)
+        plt.ylabel('minimization_value', fontsize = 12)
         plt.savefig(f.name, format='pdf')
         plt.show()
         plt.close()
         
-def plot_minimization_found_biggest_coefs(sf,max_sparsity,interval,model = '3',greedy = False):
+def plot_minimization_found_biggest_coefs(sf,max_sparsity,interval,model = '3',greedy = False,flag_general = False):
     '''plots the minimal value found when performing a minimization algorithm constrained to its biggest coefficients
     
     :param sf: SetFunction object
@@ -415,11 +413,11 @@ def plot_minimization_found_biggest_coefs(sf,max_sparsity,interval,model = '3',g
     '''
     minvals = []
     if model == '3':
-        est = sf.transform_sparse(model = '3')
+        est = sf.transform_sparse(model = '3',flag_general = False)
     if model == 'W3':
-        est = sf.transform_sparse(model = 'W3')
+        est = sf.transform_sparse(model = 'W3',flag_general = False)
     if model == '4':
-        est = sf.transform_sparse(model = '4')
+        est = sf.transform_sparse(model = '4',flag_general = False)
     for i in range(1,max_sparsity,interval):
         est_i = est.force_k_sparse(i)
         if(greedy):
@@ -431,10 +429,9 @@ def plot_minimization_found_biggest_coefs(sf,max_sparsity,interval,model = '3',g
     with NamedTemporaryFile(suffix='.pdf',delete=False) as f:
         plt.plot(np.arange(1,max_sparsity,interval),minvals,label = '')
         plt.legend()
-        plt.xlabel('k-max')
-        plt.ylabel('minimization_value')
+        plt.xlabel('k-sparsity', fontsize = 12)
+        plt.ylabel('minimization_value', fontsize = 12)
         plt.xlim(0, max_sparsity)
-        #plt.xticks(np.arange(0,max_sparsity,interval))
         plt.savefig(f.name, format='pdf')
         plt.show()
         plt.close()
