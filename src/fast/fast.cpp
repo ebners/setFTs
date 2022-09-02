@@ -130,7 +130,7 @@ vector<double> fidsft4(vector<double> signal){
 }
 
 //fast walsh-hadamard Transform
-vector<double> fwht(vector<double> signal){
+vector<double> fwht(vector<double> signal,bool flag_normalization){
     int len = signal.size();
     if((len != 0) && (len & (len - 1))){
         throw std::invalid_argument("Length of signal must be power of two");
@@ -145,17 +145,18 @@ vector<double> fwht(vector<double> signal){
             for(int j = i;j < i + h; j++){
                 double x = transform[j];
                 double y = transform[j+h];
-                transform[j] =(x + y)/2;
-                transform[j+h] = (x - y)/2;
+                if(flag_normalization){
+                    transform[j] =(x + y)/2;
+                    transform[j+h] = (x - y)/2;
+                }
+                else{
+                     transform[j] =(x + y);
+                    transform[j+h] = (x - y);
+                }
             }
         }
         h = h*2;
     }
-    //normalize
-    // for(int i = 0; i < len; i++){
-    //     transform[i] = transform[i]/(pow(2,len));
-    // }
-
     return transform;
 
 }

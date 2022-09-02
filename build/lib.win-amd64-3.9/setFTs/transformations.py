@@ -10,12 +10,13 @@ from setFTs import utils
 from setFTs import fast 
 
 class FastSFT:
-    def __init__(self,model : str = '3'):
+    def __init__(self,model : str = '3',flag_normalization = True):
         """
         @param model: a string representing which model to use. 
-        Can be either 3, 3SI, 4 or WHT
+        Can be either 3, 4 or WHT
         """
         self.model = model
+        self.normalize = flag_normalization
 
     def transform(self,signal):
         """
@@ -26,18 +27,18 @@ class FastSFT:
             coefs = np.asarray(fast.fdsft3(signal))
             freqs = utils.get_indicator_set(int(log2(len(signal))))
             return sf.SparseDSFTFunction(freqs,coefs,'3')
-        elif(self.model == '3SI'):
-            coefs = np.asarray(fast.fdsft3_selfInverse(signal))
-            freqs = utils.get_indicator_set(int(log2(len(signal))))
-            return sf.SparseDSFTFunction(freqs,coefs,'3SI')
+        # elif(self.model == '3SI'):
+        #     coefs = np.asarray(fast.fdsft3_selfInverse(signal))
+        #     freqs = utils.get_indicator_set(int(log2(len(signal))))
+        #     return sf.SparseDSFTFunction(freqs,coefs,'3SI')
         elif(self.model == '4'):
             coefs = np.asarray(fast.fdsft4(signal))
             freqs = utils.get_indicator_set(int(log2(len(signal))))
             return sf.SparseDSFTFunction(freqs,coefs,'4')
         elif(self.model == 'WHT' or self.model == '5'):
-            coefs = np.asarray(fast.fwht(signal))
+            coefs = np.asarray(fast.fwht(signal,self.normalize))
             freqs = utils.get_indicator_set(int(log2(len(signal))))
-            return sf.SparseDSFTFunction(freqs,coefs,'5')
+            return sf.SparseDSFTFunction(freqs,coefs,'5',normalization_flag = not self.normalize)
         
     def inverse(self,s_hat):
         """
@@ -192,7 +193,9 @@ class SparseSFT:
         if self.flag_print:
             print('total queries: %d'%n_queries_total)
         if(model == '3'):
-            estimate = sf.SparseDSFTFunction(keys, fourier_coefs, model = '3SI')
+            freq_sums = keys.sum(axis=1)
+            new_coefs = (-1)**freq_sums*fourier_coefs
+            estimate = sf.SparseDSFTFunction(keys, new_coefs, model = '3')
         if(model == 'W3'):
             estimate = sf.SparseDSFTFunction(keys, fourier_coefs, model = 'W3')
         if(model == '4'):

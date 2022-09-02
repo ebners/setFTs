@@ -114,7 +114,7 @@ class SetFunction(ABC):
         :rtype: (np.array,float)
         """
         S0 = np.ones(n, dtype=bool)
-        for t in range(max_card):
+        for t in range(n - max_card):
             i, value = self.gains(n, S0,maximize = False)
             if verbose:
                 print('gains: i=%d, value=%.4f'%(i, value))
@@ -158,6 +158,10 @@ class WrapSignal(SetFunction):
             result += [self.coefs[int(power_of_twos.dot(ind))]]
         return np.asarray(result)
 
+    def full_signal(self):
+        sig = self.coefs
+        return sig
+
     def spectral_energy(self,max_card,flag_rescale = True):
         """calculates the normalized coefficients per cardinality
 
@@ -183,18 +187,20 @@ class WrapSignal(SetFunction):
                 avg_values += [avg]
         return avg_values
 
-    def transform_fast(self,model = '3'):
+    def transform_fast(self,model = '3',flag_normalization = True):
         """fast Fourier transformation algorithm
         
         :param model: basis upon which to calculate the transform see arxiv.org/pdf/2001.10290.pdf for more info
         :type model: str
+        :param flag_normalization: boolean flag indicationg whether normalization for WHT (model 5) should be included in Fourier transform
+        :type flag_normalization: bool
         :returns: sparseDSFTFunction object of the desired model 
         :rtype: sparseDSFTFunction
         """
-        fast_transformer = transformations.FastSFT(model = model)
+        fast_transformer = transformations.FastSFT(model = model,flag_normalization=flag_normalization)
         return fast_transformer.transform(self.coefs)
 
-    def transform_sparse(self,model = '3',k_max = None,eps = 1e-8,flag_print = True,flag_general = True):
+    def transform_sparse(self,model = '3',k_max = None,eps = 1e-8,flag_print = False,flag_general = True):
         """sparse Fourier transformation algorithm
         
         :param model: basis upon which to calculate the Fourier transform
@@ -233,7 +239,7 @@ class WrapSignal(SetFunction):
         max_index = sig.index(max(sig))
         return int2indicator(max_index,self.n)
 
-    def export_to_csv(self,name ="sf.csv"):
+    def export_to_csv(self,name ="sf"):
         """ exports the frequencies and coefficients into a csv file 
             
             :param name: name of the newly created file ending in .csv
@@ -242,7 +248,7 @@ class WrapSignal(SetFunction):
         df_freqs = pd.DataFrame(self.freqs)
         df_coefs = pd.DataFrame(self.coefs)
         df_sf = pd.concat([df_freqs,df_coefs],axis =1)
-        df_sf.to_csv(name)
+        df_sf.to_csv(name +'.csv')
     
 class WrapSetFunction(SetFunction):
     """Wrapper class for instantiating set functions with a callable function"""
@@ -301,8 +307,8 @@ class WrapSetFunction(SetFunction):
             if count_flag:
                 self.call_counter += indicator.shape[0]
             return self.s(indicator)
-
-    def transform_fast(self,model = '3'):
+        
+    def transform_fast(self,model = '3',flag_normalization = True):
         """fast Fourier transformation algorithm (not advised)
 
         :param model: basis upon which to calculate the transform see arxiv.org/pdf/2001.10290.pdf for more info
@@ -319,10 +325,10 @@ class WrapSetFunction(SetFunction):
             return
         else:
             print("Please input y to confirm or n to abort")
-        fast_transformer = transformations.FastSFT(model = model)
+        fast_transformer = transformations.FastSFT(model = model,flag_normalization= flag_normalization)
         return fast_transformer.transform(coefs)
         
-    def transform_sparse(self,model = '3',k_max = None,eps = 1e-8,flag_print = True,flag_general = True):
+    def transform_sparse(self,model = '3',k_max = None,eps = 1e-8,flag_print = False,flag_general = True):
         """sparse Fourier transformation algorithm
         
         :param model: basis upon which to calculate the Fourier transform
@@ -342,7 +348,7 @@ class SparseDSFTFunction(SetFunction):
             :type frequencies: npt.NDArray
             :param coefficients: one dimensional np.array of corresponding Fourier coeffients
             :type coefficients: npt.NDArray[np.float64]
-            :param model: either '3','3SI','W3','4' or '5'(or'WHT')
+            :param model: either '3',','W3','4' or '5'(or'WHT')
             :type model: str
             :param normalization_flag: Only used for model 5/WHT flag indicates whether call should normalize values or not. Default is False
             :type normalization_flag: bool
@@ -351,7 +357,8 @@ class SparseDSFTFunction(SetFunction):
         self.freqs = frequencies
         self.coefs = coefficients.astype(np.longdouble)
         self.call_counter = 0
-        if model not in ['3','3SI','W3','4','5','WHT']:
+        self.n = frequencies.shape[1]
+        if model not in ['3','W3','4','5','WHT']:
             raise Exception("unknown model type. Please choose valid model type")
         self.model = model
         self.normalization = normalization_flag
@@ -372,10 +379,10 @@ class SparseDSFTFunction(SetFunction):
         fsum = self.freq_sums
         if len(ind.shape) < 2:
             ind = ind[np.newaxis, :]
-        if(self.model == '3SI'):
-            coefs = (-1)**fsum * coefs
-            active = freqs.dot(np.logical_not(ind).T)
-            active = active == 0
+        # if(self.model == '3SI'):
+        #     coefs = (-1)**fsum * coefs
+        #     active = freqs.dot(np.logical_not(ind).T)
+        #     active = active == 0
         if(self.model == '3'):
             coefs = coefs
             active = freqs.dot(np.logical_not(ind).T)
@@ -398,6 +405,18 @@ class SparseDSFTFunction(SetFunction):
         res = (active * coefs[:, np.newaxis]).sum(axis=0)
         return res
 
+    def full_signal(self):
+        print("Warning: About to execute 2^n queries of the setfunction. Not advised to be used with larger n. \n Do you wish to proceed? [y/n]")
+        inp = input()
+        if (inp == 'y'):
+            inds = get_indicator_set(self.n)
+            coefs = self(inds)
+            return coefs
+        elif (inp == 'n'):
+            return
+        else:
+            print("Please input y to confirm or n to abort")
+
     def shapley_values(self):
         """
         Calculates the Shapley Values for all elements in the ground set
@@ -407,7 +426,7 @@ class SparseDSFTFunction(SetFunction):
         """
         freqs = self.freqs
         coefs = self.coefs
-        n = freqs.shape[1] 
+        n = self.n 
         card_b = freqs.sum(axis =1)
         if(self.model == 'W3'):
             raise Exception("Unimplemented Error: Shapley Values for Model W3 not implemented yet")
@@ -415,8 +434,8 @@ class SparseDSFTFunction(SetFunction):
         card_b = card_b[mask]
         freqs = freqs[mask]
         coefs = coefs[mask]
-        if(self.model =='3SI'):
-            shapleys_of_bs = ((-1)**(card_b))*(1/(card_b))
+        # if(self.model =='3SI'):
+        #     shapleys_of_bs = ((-1)**(card_b))*(1/(card_b))
         if(self.model == '3'):
             shapleys_of_bs = 1/(card_b)
         if(self.model == '4'):
@@ -445,10 +464,10 @@ class SparseDSFTFunction(SetFunction):
         :rtype: (npt.NDArray[bool],float)
         """
         est = self
-        if self.model == '3SI':
-            new_coefs = (-1)**self.freq_sums*self.coefs
-            est = SparseDSFTFunction(self.freqs,new_coefs,model = self.model) 
-            minvec, minval = minmax.minmax_dsft3(est,C,cardinality_constraint,maximize = False)
+        # if self.model == '3SI':
+        #     new_coefs = (-1)**self.freq_sums*self.coefs
+        #     est = SparseDSFTFunction(self.freqs,new_coefs,model = self.model) 
+        #     minvec, minval = minmax.minmax_dsft3(est,C,cardinality_constraint,maximize = False)
         if self.model == '3' or self.model == 'W3':
             minvec, minval = minmax.minmax_dsft3(est,C,cardinality_constraint,maximize = False)
         if self.model == '4':
@@ -468,10 +487,10 @@ class SparseDSFTFunction(SetFunction):
         :rtype: (npt.NDArray[bool],float)
         """
         est = self
-        if self.model == '3SI':
-            new_coefs = (-1)**self.freq_sums*self.coefs
-            est = SparseDSFTFunction(self.freqs,new_coefs,model = self.model) 
-            minvec, minval = minmax.minmax_dsft3(est,C,cardinality_constraint,maximize = True)
+        # if self.model == '3SI':
+        #     new_coefs = (-1)**self.freq_sums*self.coefs
+        #     est = SparseDSFTFunction(self.freqs,new_coefs,model = self.model) 
+        #     minvec, minval = minmax.minmax_dsft3(est,C,cardinality_constraint,maximize = True)
         if self.model == '3' or self.model == 'W3':
             minvec, minval = minmax.minmax_dsft3(est,C,cardinality_constraint,maximize = True)
         if self.model == '4':
@@ -548,8 +567,6 @@ class DSFT3OneHop(SetFunction):
         self.call_counter = 0
         if (model != '3' and model != 'W3'):
             raise Exception('model has to be a string that is either 3 or W3')
-        if (model == '3'):
-            model ='3SI'
         self.model = model
     
     def __call__(self, indicators : npt.NDArray, count_flag=True ):
@@ -586,7 +603,9 @@ class DSFT3OneHop(SetFunction):
         freqs = freqs.astype(bool)
         for key, value in zip(freqs, coefs):
             coefs_new += [value/(1 + self.weights[True^key].sum())]
-        return SparseDSFTFunction(freqs.astype(np.int32), np.asarray(coefs_new),self.model)
+        freq_sums = freqs.sum(axis=1)
+        new_coefs = (-1)**freq_sums*coefs_new
+        return SparseDSFTFunction(freqs.astype(np.int32), np.asarray(new_coefs),self.model)
 
 class DSFT4OneHop(SetFunction):
     
